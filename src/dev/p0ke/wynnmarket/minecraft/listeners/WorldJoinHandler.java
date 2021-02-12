@@ -23,7 +23,7 @@ import dev.p0ke.wynnmarket.minecraft.util.StringUtil;
 
 public class WorldJoinHandler extends Listener {
 
-	private static final Pattern PLAYERCOUNT_PATTERN = Pattern.compile("✔ (\\d+)/50 Players Online");
+	private static final Pattern PLAYERCOUNT_PATTERN = Pattern.compile("✔ (\\d+)/\\d+ Players Online");
 	private static final Pattern WORLD_PATTERN = Pattern.compile("World (\\d+)");
 
 	private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
