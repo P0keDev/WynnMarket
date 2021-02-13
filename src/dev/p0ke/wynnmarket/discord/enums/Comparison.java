@@ -23,12 +23,12 @@ public enum Comparison implements IntPredicate {
     public boolean test(int value) {
         return check.test(value);
     }
-    
+
     public static Comparison fromSymbol(String symbol) {
     	for (Comparison c : Comparison.values()) {
     		if (c.symbol.equals(symbol)) return c;
     	}
     	return null;
     }
-    
+
 }

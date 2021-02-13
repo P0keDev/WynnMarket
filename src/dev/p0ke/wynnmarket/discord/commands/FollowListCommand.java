@@ -20,13 +20,13 @@ public class FollowListCommand implements Command {
 			event.getChannel().sendMessage("This channel is not registered!");
 			return;
 		}
-		
+
 		List<String> items = ChannelManager.getItemsForUser(event.getChannel().getIdAsString(), event.getMessageAuthor().getIdAsString());
 		if (items.isEmpty()) {
 			event.getChannel().sendMessage("You are not following any items!");
 			return;
 		}
-		
+
 		event.getChannel().sendMessage("You are following:\n" + String.join("\n", items));
 	}
 

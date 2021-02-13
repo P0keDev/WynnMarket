@@ -22,24 +22,24 @@ public class FollowItemCommand implements Command {
 			event.getChannel().sendMessage("This channel is not registered!");
 			return;
 		}
-		
+
 		if (args.length <= 1) {
 			event.getChannel().sendMessage("Must specify an item!");
 			return;
 		}
-		
+
 		String item = "";
 		for (int i = 1; i < args.length; i++) {
 			item += args[i] + " ";
 		}
 		item = item.trim();
-		
+
 		if (ChannelManager.addItem(event.getChannel().getIdAsString(), event.getMessageAuthor().getIdAsString(), item))
 			event.getChannel().sendMessage("You are now following: " + WordUtils.capitalize(item));
 		else
 			event.getChannel().sendMessage("You are already following that item!");
 	}
-	
-	
+
+
 
 }

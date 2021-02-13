@@ -22,18 +22,18 @@ public class UnfollowItemCommand implements Command {
 			event.getChannel().sendMessage("This channel is not registered!");
 			return;
 		}
-		
+
 		if (args.length <= 1) {
 			event.getChannel().sendMessage("Must specify an item!");
 			return;
 		}
-		
+
 		String item = "";
 		for (int i = 1; i < args.length; i++) {
 			item += args[i] + " ";
 		}
 		item = item.trim();
-		
+
 		if (ChannelManager.removeItem(event.getChannel().getIdAsString(), event.getMessageAuthor().getIdAsString(), item))
 			event.getChannel().sendMessage("You unfollowed: " + WordUtils.capitalize(item));
 		else

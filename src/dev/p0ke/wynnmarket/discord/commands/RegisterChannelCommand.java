@@ -20,7 +20,7 @@ public class RegisterChannelCommand implements Command {
 			event.getChannel().sendMessage("You must be an admin to register a channel!");
 			return;
 		}
-		
+
 		String id = event.getChannel().getIdAsString();
 		boolean logAll = (args.length > 1 && args[1].equalsIgnoreCase("log"));
 		ChannelManager.addChannel(id, logAll);

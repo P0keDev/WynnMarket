@@ -14,7 +14,7 @@ import dev.p0ke.wynnmarket.minecraft.ClientManager;
 import dev.p0ke.wynnmarket.minecraft.util.StringUtil;
 
 public class WindowHandler extends Listener {
-	
+
 	private static Map<Integer, String> windows = new HashMap<>();
 	private static int currentWindow = -1;
 
@@ -25,25 +25,25 @@ public class WindowHandler extends Listener {
 			windows.put(windowPacket.getWindowId(), StringUtil.parseText(windowPacket.getName()));
 			currentWindow = windowPacket.getWindowId();
 		}
-		
+
 		if (event.getPacket() instanceof ServerCloseWindowPacket || event.getPacket() instanceof ClientCloseWindowPacket) {
 			currentWindow = -1;
 		}
-		
+
 		if (event.getPacket() instanceof ServerConfirmTransactionPacket) {
 			ServerConfirmTransactionPacket confirmPacket = (ServerConfirmTransactionPacket) event.getPacket();
 			ClientManager.getClient().getSession().send(new ClientConfirmTransactionPacket(confirmPacket.getWindowId(), confirmPacket.getActionId(), true));
 		}
 	}
-	
+
 	public static String getWindowName(int id) {
 		return windows.get(id);
 	}
-	
+
 	public static int getCurrentWindow() {
 		return currentWindow;
 	}
-	
+
 	public void finish() { }
 
 }
