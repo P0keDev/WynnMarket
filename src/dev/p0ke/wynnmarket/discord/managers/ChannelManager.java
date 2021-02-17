@@ -34,7 +34,7 @@ private static final Type listType = new TypeToken<List<RegisteredChannel>>(){}.
 			adapter.registerSubtype(StatFilter.class);
 			adapter.registerSubtype(PriceFilter.class);
 
-			gson = new GsonBuilder().registerTypeAdapterFactory(adapter).create();
+			gson = new GsonBuilder().registerTypeAdapterFactory(adapter).setPrettyPrinting().create();
 
 			channelFile = new File("./channels.json");
 			if (channelFile.exists()) {
