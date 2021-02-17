@@ -1,40 +1,37 @@
 package dev.p0ke.wynnmarket.discord.instances.filters;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.WordUtils;
-
+import dev.p0ke.wynnmarket.data.instances.MarketItem;
 import dev.p0ke.wynnmarket.discord.BotManager;
 import dev.p0ke.wynnmarket.discord.enums.Comparison;
+import dev.p0ke.wynnmarket.discord.enums.StatType;
 
-@SuppressWarnings("deprecation")
 public class StatFilter extends ItemFilter {
 
-	private String stat;
+	private StatType stat;
 
-	public StatFilter(String stat, int value, Comparison comp) {
+	public StatFilter(StatType stat, int value, Comparison comp) {
 		super(value, comp);
-		this.stat = stat.toLowerCase();
+		this.stat = stat;
 	}
 
-	public boolean test(String line) {
-		line = line.toLowerCase();
-		if (!line.contains(stat)) return true;
+	public boolean test(MarketItem item) {
+		for (String line : item.getLore()) {
+			line = line.toLowerCase().replace("*", "");
+			if (!stat.matches(line)) continue;
 
-		try {
-			String idString = StringUtils.substringBefore(line, " ")
-					.replace("*", "").replace("/4s", "").replace("/3s", "").replace("%", "").replace("+", "");
-			int id = Integer.parseInt(idString);
-
-			return comp.test(id - value);
-		} catch (NumberFormatException e) {
-			BotManager.logMessage("Filter Error", "Failed to parse ID: " + line);
+			try {
+				int id = stat.getValue(line);
+				return comp.test(id - value);
+			} catch (NumberFormatException e) {
+				BotManager.logMessage("Filter Error", "Failed to parse ID: " + line + "\nStat: " + stat.getName());
+			}
 		}
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return comp.symbol + " " + value + " " + WordUtils.capitalize(stat);
+		return comp.symbol + " " + value + " " + stat.getName();
 	}
 
 }

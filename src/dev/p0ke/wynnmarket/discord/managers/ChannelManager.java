@@ -16,7 +16,7 @@ import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import dev.p0ke.wynnmarket.data.instances.MarketItem;
 import dev.p0ke.wynnmarket.discord.instances.RegisteredChannel;
 import dev.p0ke.wynnmarket.discord.instances.filters.ItemFilter;
-import dev.p0ke.wynnmarket.discord.instances.filters.RerollFilter;
+import dev.p0ke.wynnmarket.discord.instances.filters.PriceFilter;
 import dev.p0ke.wynnmarket.discord.instances.filters.StatFilter;
 
 public class ChannelManager {
@@ -32,7 +32,7 @@ private static final Type listType = new TypeToken<List<RegisteredChannel>>(){}.
 		try {
 			RuntimeTypeAdapterFactory<ItemFilter> adapter = RuntimeTypeAdapterFactory.of(ItemFilter.class);
 			adapter.registerSubtype(StatFilter.class);
-			adapter.registerSubtype(RerollFilter.class);
+			adapter.registerSubtype(PriceFilter.class);
 
 			gson = new GsonBuilder().registerTypeAdapterFactory(adapter).create();
 

@@ -31,10 +31,8 @@ public class FollowedItem {
 
 		if (blockList.contains(item.createGenericCopy())) return false;
 
-		for (String line : item.getLore()) {
-			for (ItemFilter f : filters) {
-				if (!f.test(line)) return false;
-			}
+		for (ItemFilter f : filters) {
+			if (!f.test(item)) return false;
 		}
 
 		return true;

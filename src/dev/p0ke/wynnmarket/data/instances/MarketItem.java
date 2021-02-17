@@ -34,7 +34,7 @@ public class MarketItem {
 	}
 
 	public String getCleanedName() {
-		return StringUtils.substringBefore(name, "[").trim();
+		return StringUtils.substringBefore(name, "[").replace("Unidentified", "").trim();
 	}
 
 	public int getQuantity() {
@@ -47,6 +47,10 @@ public class MarketItem {
 
 	public List<String> getLore() {
 		return lore;
+	}
+
+	public boolean isUnidentified() {
+		return name.startsWith("Unidentified");
 	}
 
 	public MarketItem createGenericCopy() {
@@ -95,7 +99,7 @@ public class MarketItem {
 			String line = itemLore.get(i);
 			if (line.isEmpty() && lore.isEmpty()) continue;
 
-			lore.add(line);
+			lore.add(line.replace("ÀÀÀ", " ").replace("À", ""));
 
 			Matcher m1 = TIER_PATTERN.matcher(line);
 			if (m1.matches()) break;

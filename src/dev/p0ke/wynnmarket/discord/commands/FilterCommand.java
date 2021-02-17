@@ -10,15 +10,16 @@ import org.apache.commons.lang3.text.WordUtils;
 import org.javacord.api.event.message.MessageCreateEvent;
 
 import dev.p0ke.wynnmarket.discord.enums.Comparison;
+import dev.p0ke.wynnmarket.discord.enums.StatType;
 import dev.p0ke.wynnmarket.discord.instances.filters.ItemFilter;
-import dev.p0ke.wynnmarket.discord.instances.filters.RerollFilter;
+import dev.p0ke.wynnmarket.discord.instances.filters.PriceFilter;
 import dev.p0ke.wynnmarket.discord.instances.filters.StatFilter;
 import dev.p0ke.wynnmarket.discord.managers.ChannelManager;
 
 @SuppressWarnings("deprecation")
 public class FilterCommand implements Command {
 
-	private static final Pattern FORMAT = Pattern.compile("(?<Item>.+) (?<Comparator>[!=<>]+) (?<Value>-?\\d+) (?<Stat>.+)");
+	private static final Pattern FORMAT = Pattern.compile("(?<Item>.+) (?<Comparator>[!=<>]+) ?(?<Value>-?\\d+) ?(?<Stat>.+)");
 
 	@Override
 	public List<String> getNames() {
@@ -54,22 +55,28 @@ public class FilterCommand implements Command {
 		String item = m.group("Item");
 		Comparison comp = Comparison.fromSymbol(m.group("Comparator"));
 		int value = Integer.parseInt(m.group("Value"));
-		String stat = m.group("Stat");
+		String statString = m.group("Stat");
+		StatType stat = StatType.fromShorthand(statString);
 
 		if (comp == null) {
 			event.getChannel().sendMessage("Valid comparisons are: = != < > <= >=");
 			return;
 		}
 
+		if (stat == null) {
+			event.getChannel().sendMessage(statString + " is not a valid stat!");
+			return;
+		}
+
 		ItemFilter filter;
-		if (stat.equalsIgnoreCase("rerolls")) {
-			filter = new RerollFilter(value, comp);
+		if (stat == StatType.PRICE) {
+			filter = new PriceFilter(value, comp);
 		} else {
 			filter = new StatFilter(stat, value, comp);
 		}
 
 		if (ChannelManager.addItemFilter(event.getChannel().getIdAsString(), event.getMessageAuthor().getIdAsString(), item, filter)) {
-			event.getChannel().sendMessage("Successfully added filter to " + WordUtils.capitalize(item) + "!");
+			event.getChannel().sendMessage("Successfully added filter (" + filter + ") to " + WordUtils.capitalize(item) + "!");
 		} else {
 			event.getChannel().sendMessage("Failed to add filter! Are you following that item?");
 		}
