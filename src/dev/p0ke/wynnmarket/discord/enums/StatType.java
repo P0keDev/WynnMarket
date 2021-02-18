@@ -71,12 +71,13 @@ public enum StatType {
 	}
 
 	public int getValue(String line) throws NumberFormatException {
-		if (!matches(line)) return 0;
 		Matcher m = regex.matcher(line);
+		if (!m.matches()) return 0;
 		return (m.group(1) == null) ? 0 : Integer.parseInt(m.group(1));
 	}
 
 	public static StatType fromShorthand(String name) {
+		name = name.toLowerCase();
 		for (StatType type : StatType.values()) {
 			for (String sh : type.shorthands) {
 				if (name.matches(sh) || name.matches(sh.replace(" ", "")))

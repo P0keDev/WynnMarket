@@ -22,7 +22,7 @@ public class ItemFilter {
 			return comp.test(item.getPrice() - value);
 
 		for (String line : item.getLore()) {
-			line = line.toLowerCase().replace("*", "");
+			line = line.replace("*", "");
 			if (!stat.matches(line)) continue;
 
 			try {
