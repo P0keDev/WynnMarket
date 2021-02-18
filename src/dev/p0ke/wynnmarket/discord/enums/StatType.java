@@ -46,9 +46,11 @@ public enum StatType {
 	THIRD_SPELL_PCT("3rd Spell Cost %", "([+-]\\d+)% 3rd Spell Cost", "(3rd|third) spell( cost)? (pct|%)"),
 	FOURTH_SPELL_RAW("4th Spell Cost Raw", "([+-]\\d+) 1st Spell Cost", "(4th|fourth) spell( cost)? raw"),
 	FOURTH_SPELL_PCT("4th Spell Cost %", "([+-]\\d+)% 1st Spell Cost", "(4th|fourth) spell( cost)? (pct|%)"),
-	REROLLS("Rerolls", "(?:Normal|Unique|Rare|Legendary|Fabled|Mythic) Item(?: \\[(\\d+)\\])?", "rerolls", "rrs", "rr"),
 
-	PRICE("Price", "", "price", "emeralds", "ems");
+	REROLLS("Rerolls", "(?:Normal|Unique|Rare|Legendary|Fabled|Mythic) Item(?: \\[(\\d+)\\])?", "rerolls", "rrs", "rr"),
+	HORSE_LEVEL("Horse Level", "Speed: (\\d+)/\\d+", "horse level", "horse speed"),
+
+	PRICE("Emeralds", "^$", "price", "emeralds", "ems");
 
 	private String name;
 	private Pattern regex;

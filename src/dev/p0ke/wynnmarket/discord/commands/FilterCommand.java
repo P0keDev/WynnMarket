@@ -11,9 +11,7 @@ import org.javacord.api.event.message.MessageCreateEvent;
 
 import dev.p0ke.wynnmarket.discord.enums.Comparison;
 import dev.p0ke.wynnmarket.discord.enums.StatType;
-import dev.p0ke.wynnmarket.discord.instances.filters.ItemFilter;
-import dev.p0ke.wynnmarket.discord.instances.filters.PriceFilter;
-import dev.p0ke.wynnmarket.discord.instances.filters.StatFilter;
+import dev.p0ke.wynnmarket.discord.instances.ItemFilter;
 import dev.p0ke.wynnmarket.discord.managers.ChannelManager;
 
 @SuppressWarnings("deprecation")
@@ -68,12 +66,7 @@ public class FilterCommand implements Command {
 			return;
 		}
 
-		ItemFilter filter;
-		if (stat == StatType.PRICE) {
-			filter = new PriceFilter(value, comp);
-		} else {
-			filter = new StatFilter(stat, value, comp);
-		}
+		ItemFilter filter = new ItemFilter(stat, value, comp);
 
 		if (ChannelManager.addItemFilter(event.getChannel().getIdAsString(), event.getMessageAuthor().getIdAsString(), item, filter)) {
 			event.getChannel().sendMessage("Successfully added filter (" + filter + ") to " + WordUtils.capitalize(item) + "!");

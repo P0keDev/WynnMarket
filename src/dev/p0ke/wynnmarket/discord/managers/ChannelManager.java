@@ -11,13 +11,10 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 
 import dev.p0ke.wynnmarket.data.instances.MarketItem;
+import dev.p0ke.wynnmarket.discord.instances.ItemFilter;
 import dev.p0ke.wynnmarket.discord.instances.RegisteredChannel;
-import dev.p0ke.wynnmarket.discord.instances.filters.ItemFilter;
-import dev.p0ke.wynnmarket.discord.instances.filters.PriceFilter;
-import dev.p0ke.wynnmarket.discord.instances.filters.StatFilter;
 
 public class ChannelManager {
 
@@ -30,11 +27,7 @@ private static final Type listType = new TypeToken<List<RegisteredChannel>>(){}.
 
 	public static void setupList() {
 		try {
-			RuntimeTypeAdapterFactory<ItemFilter> adapter = RuntimeTypeAdapterFactory.of(ItemFilter.class);
-			adapter.registerSubtype(StatFilter.class);
-			adapter.registerSubtype(PriceFilter.class);
-
-			gson = new GsonBuilder().registerTypeAdapterFactory(adapter).setPrettyPrinting().create();
+			gson = new GsonBuilder().setPrettyPrinting().create();
 
 			channelFile = new File("./channels.json");
 			if (channelFile.exists()) {

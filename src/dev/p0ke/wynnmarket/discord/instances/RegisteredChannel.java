@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dev.p0ke.wynnmarket.data.instances.MarketItem;
-import dev.p0ke.wynnmarket.discord.instances.filters.ItemFilter;
 
 public class RegisteredChannel {
 

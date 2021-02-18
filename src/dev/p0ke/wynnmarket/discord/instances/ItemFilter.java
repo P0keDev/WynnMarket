@@ -1,20 +1,26 @@
-package dev.p0ke.wynnmarket.discord.instances.filters;
+package dev.p0ke.wynnmarket.discord.instances;
 
 import dev.p0ke.wynnmarket.data.instances.MarketItem;
 import dev.p0ke.wynnmarket.discord.BotManager;
 import dev.p0ke.wynnmarket.discord.enums.Comparison;
 import dev.p0ke.wynnmarket.discord.enums.StatType;
 
-public class StatFilter extends ItemFilter {
+public class ItemFilter {
 
 	private StatType stat;
+	private int value;
+	private Comparison comp;
 
-	public StatFilter(StatType stat, int value, Comparison comp) {
-		super(value, comp);
+	public ItemFilter(StatType stat, int value, Comparison comp) {
 		this.stat = stat;
+		this.value = value;
+		this.comp = comp;
 	}
 
 	public boolean test(MarketItem item) {
+		if (stat == StatType.PRICE)
+			return comp.test(item.getPrice() - value);
+
 		for (String line : item.getLore()) {
 			line = line.toLowerCase().replace("*", "");
 			if (!stat.matches(line)) continue;

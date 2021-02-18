@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.text.WordUtils;
 
 import dev.p0ke.wynnmarket.data.instances.MarketItem;
-import dev.p0ke.wynnmarket.discord.instances.filters.ItemFilter;
 
 @SuppressWarnings("deprecation")
 public class FollowedItem {
