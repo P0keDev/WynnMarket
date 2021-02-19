@@ -67,7 +67,7 @@ public class MarketLogManager {
 	public static void saveLog() {
 		try {
 			BufferedWriter logWriter = new BufferedWriter(new FileWriter(logFile));
-			logWriter.write(gson.toJson(entries, entryType));
+			logWriter.write(gson.toJson(new ArrayList<>(entries), entryType));
 			logWriter.close();
 
 			checkDate();
