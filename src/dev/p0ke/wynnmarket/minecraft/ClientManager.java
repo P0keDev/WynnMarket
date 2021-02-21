@@ -31,14 +31,16 @@ public class ClientManager {
 	private static Client client;
 	private static String username;
 	private static String password;
+	private static String npcColor;
 	private static List<Listener> listeners = new ArrayList<>();
 
 	private static ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 	private static boolean lobbySuccess = false;
 
-	public static void startClient(String user, String pass) {
+	public static void startClient(String user, String pass, String color) {
 		username = user;
 		password = pass;
+		npcColor = color;
 		startClient();
 	}
 
@@ -68,7 +70,7 @@ public class ClientManager {
 		listeners.add(new WindowHandler());
 		listeners.add(new WorldJoinHandler());
 		listeners.add(new ResourcePackHandler());
-		listeners.add(new MarketHandler());
+		listeners.add(new MarketHandler(npcColor));
 
 		listeners.forEach(l -> client.getSession().addListener(l));
 	}

@@ -30,9 +30,10 @@ import dev.p0ke.wynnmarket.minecraft.util.StringUtil;
 
 public class MarketHandler extends Listener {
 
-	@SuppressWarnings("unused")
 	private static final String BLUE_NPC_TEXTURE = "eyJ0aW1lc3RhbXAiOjE1NDQ0MTY1MTgzNTIsInByb2ZpbGVJZCI6IjdlZGE1Y2JiODRkMDQzZGI4YjZiYWE3YTc1YTVhZWU4IiwicHJvZmlsZU5hbWUiOiJDcnVua2Fjb2xhIiwic2lnbmF0dXJlUmVxdWlyZWQiOnRydWUsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS82YjUyZmFkNmM3NjhlMjQ2NjM4OGY1MTEyYjE3ODAzNTIzYjk4ZWNhZjQ4NGViMGM3MTE5YWQ2MDVlYTVkZDRiIn19fQ==";
 	private static final String RED_NPC_TEXTURE = "eyJ0aW1lc3RhbXAiOjE1NDQ0MTY0ODc4MTUsInByb2ZpbGVJZCI6IjdlZGE1Y2JiODRkMDQzZGI4YjZiYWE3YTc1YTVhZWU4IiwicHJvZmlsZU5hbWUiOiJDcnVua2Fjb2xhIiwic2lnbmF0dXJlUmVxdWlyZWQiOnRydWUsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9lMjJhZjMxYTgyNTRhYjg4ZDQ1ODBlNDc3Njg0NGMwNDM0N2QzOWU5ODYzMmZkYWZhMWI4N2Y5ZDBmYjcxZThmIn19fQ==";
+
+	private String npcTexture;
 
 	private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -42,6 +43,13 @@ public class MarketHandler extends Listener {
 	private boolean schedulerRunning = false;
 	private long lastMarketUpdate;
 	private int marketWindowId;
+
+	public MarketHandler(String npcColor) {
+		if (npcColor.equalsIgnoreCase("red"))
+			npcTexture = RED_NPC_TEXTURE;
+		else
+			npcTexture = BLUE_NPC_TEXTURE;
+	}
 
 	@Override
 	public void packetReceived(PacketReceivedEvent event) {
@@ -58,7 +66,7 @@ public class MarketHandler extends Listener {
 				if (listEntryPacket.getAction() == PlayerListEntryAction.ADD_PLAYER) {
 					for (PlayerListEntry entry : listEntryPacket.getEntries()) {
 						Property textures = entry.getProfile().getProperty("textures");
-						if (textures != null && textures.getValue().equals(RED_NPC_TEXTURE))
+						if (textures != null && textures.getValue().equals(npcTexture))
 							npcUuids.add(entry.getProfile().getId());
 					}
 				}

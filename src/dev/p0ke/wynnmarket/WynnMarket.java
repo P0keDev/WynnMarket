@@ -14,9 +14,14 @@ public class WynnMarket {
 			Properties login = new Properties();
 			login.load(new FileInputStream("login.properties"));
 
+			if (!login.containsKey("discordtoken") || !login.containsKey("mcuser") || !login.containsKey("mcpass")) {
+				System.out.println("Missing information in login.properties");
+				return;
+			}
+
 			BotManager.start(login.getProperty("discordtoken"));
 			MarketLogManager.start();
-			ClientManager.startClient(login.getProperty("mcuser"), login.getProperty("mcpass"));
+			ClientManager.startClient(login.getProperty("mcuser"), login.getProperty("mcpass"), login.getProperty("npc", "blue"));
 		} catch (Exception e) {
 			System.out.println("Failed to load login credentials:");
 			e.printStackTrace();
