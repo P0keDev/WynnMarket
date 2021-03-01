@@ -6,10 +6,10 @@ import java.util.regex.Pattern;
 public enum StatType {
 
 	ATTACK_SPEED("Attack Speed", "([+-]\\d+) tier Attack Speed", "attack speed", "tiers", "attack tiers"),
-	MAIN_ATTACK_RAW("Main Attack Raw", "([+-]\\d+) Main Attack Neutral Damage", "main attack raw", "raw melee", "main attack neutral damage"),
-	MAIN_ATTACK_PCT("Main Attack %", "([+-]\\d+)% Main Attack Damage", "main attack %", "main attack pct", "melee %", "melee pct", "main attack damage"),
+	MAIN_ATTACK_RAW("Main Attack Raw", "([+-]\\d+) Main Attack Neutral Damage", "main attack raw", "raw melee", "melee raw", "main attack neutral damage"),
+	MAIN_ATTACK_PCT("Main Attack %", "([+-]\\d+)% Main Attack Damage", "main attack %", "main attack pct", "melee %", "% melee", "melee pct", "main attack damage"),
 	SPELL_DAMAGE_RAW("Spell Damage Raw", "([+-]\\d+) Neutral Spell Damage", "spell damage raw", "raw spell", "raw spell damage", "neutral spell damage", "sd raw", "raw sd"),
-	SPELL_DAMAGE_PCT("Spell Damage %", "([+-]\\d+)% Spell Damage", "spell damage %", "spell damage pct", "spell damage", "spell", "sd"),
+	SPELL_DAMAGE_PCT("Spell Damage %", "([+-]\\d+)% Spell Damage", "spell damage %", "spell damage pct", "spell damage", "spell", "sd", "spell %", "% spell"),
 	HEALTH_BONUS("Health", "([+-]\\d+) Health", "health", "health bonus"),
 	HEALTH_REGEN_RAW("Health Regen Raw", "([+-]\\d+) Health Regen", "health regen raw", "raw health regen", "raw hpr", "hpr raw"),
 	HEALTH_REGEN_PCT("Health Regen %", "([+-]\\d+)% Health Regen", "health regen %", "health regen pct", "health regen", "hpr"),
@@ -44,8 +44,8 @@ public enum StatType {
 	SECOND_SPELL_PCT("2nd Spell Cost %", "([+-]\\d+)% 2nd Spell Cost", "(2nd|second) spell( cost)? (pct|%)"),
 	THIRD_SPELL_RAW("3rd Spell Cost Raw", "([+-]\\d+) 3rd Spell Cost", "(3rd|third) spell( cost)? raw"),
 	THIRD_SPELL_PCT("3rd Spell Cost %", "([+-]\\d+)% 3rd Spell Cost", "(3rd|third) spell( cost)? (pct|%)"),
-	FOURTH_SPELL_RAW("4th Spell Cost Raw", "([+-]\\d+) 1st Spell Cost", "(4th|fourth) spell( cost)? raw"),
-	FOURTH_SPELL_PCT("4th Spell Cost %", "([+-]\\d+)% 1st Spell Cost", "(4th|fourth) spell( cost)? (pct|%)"),
+	FOURTH_SPELL_RAW("4th Spell Cost Raw", "([+-]\\d+) 4th Spell Cost", "(4th|fourth) spell( cost)? raw"),
+	FOURTH_SPELL_PCT("4th Spell Cost %", "([+-]\\d+)% 4th Spell Cost", "(4th|fourth) spell( cost)? (pct|%)"),
 
 	REROLLS("Rerolls", "(?:Normal|Unique|Rare|Legendary|Fabled|Mythic) Item(?: \\[(\\d+)\\])?", "rerolls", "rrs", "rr"),
 	HORSE_LEVEL("Horse Level", "Speed: (\\d+)/\\d+", "horse level", "horse speed"),
