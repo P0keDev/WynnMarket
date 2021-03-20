@@ -19,6 +19,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPlayerListEn
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPlayerPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerCloseWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
 import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
@@ -101,6 +102,13 @@ public class MarketHandler extends Listener {
 					marketWindowId = itemsPacket.getWindowId();
 
 					MarketItemManager.scanPage(itemsPacket.getItems());
+				}
+			}
+
+			if (event.getPacket() instanceof ServerCloseWindowPacket) {
+				if (marketOpen) {
+					marketOpen = false;
+					BotManager.logMessage("Market Closed", "Market window closed, attempting to reopen");
 				}
 			}
 
