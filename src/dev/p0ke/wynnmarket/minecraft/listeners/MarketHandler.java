@@ -134,7 +134,7 @@ public class MarketHandler extends Listener {
 	private void checkMarket() {
 		long current = System.currentTimeMillis();
 
-		if (current - lastMarketUpdate > MARKET_TIMEOUT_INTERVAL) {
+		if (current - lastMarketUpdate > MARKET_TIMEOUT_INTERVAL*1000) {
 			timeouts++;
 
 			if (timeouts >= TIMEOUT_THRESHOLD) {
