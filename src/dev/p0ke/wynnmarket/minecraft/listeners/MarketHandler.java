@@ -34,6 +34,10 @@ public class MarketHandler extends Listener {
 	private static final String BLUE_NPC_TEXTURE = "eyJ0aW1lc3RhbXAiOjE1NDQ0MTY1MTgzNTIsInByb2ZpbGVJZCI6IjdlZGE1Y2JiODRkMDQzZGI4YjZiYWE3YTc1YTVhZWU4IiwicHJvZmlsZU5hbWUiOiJDcnVua2Fjb2xhIiwic2lnbmF0dXJlUmVxdWlyZWQiOnRydWUsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS82YjUyZmFkNmM3NjhlMjQ2NjM4OGY1MTEyYjE3ODAzNTIzYjk4ZWNhZjQ4NGViMGM3MTE5YWQ2MDVlYTVkZDRiIn19fQ==";
 	private static final String RED_NPC_TEXTURE = "eyJ0aW1lc3RhbXAiOjE1NDQ0MTY0ODc4MTUsInByb2ZpbGVJZCI6IjdlZGE1Y2JiODRkMDQzZGI4YjZiYWE3YTc1YTVhZWU4IiwicHJvZmlsZU5hbWUiOiJDcnVua2Fjb2xhIiwic2lnbmF0dXJlUmVxdWlyZWQiOnRydWUsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9lMjJhZjMxYTgyNTRhYjg4ZDQ1ODBlNDc3Njg0NGMwNDM0N2QzOWU5ODYzMmZkYWZhMWI4N2Y5ZDBmYjcxZThmIn19fQ==";
 
+	private static final int MARKET_CHECK_INTERVAL = 60;
+	private static final int MARKET_TIMEOUT_INTERVAL = 60;
+	private static final int TIMEOUT_THRESHOLD = 3;
+
 	private String npcTexture;
 
 	private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -43,6 +47,7 @@ public class MarketHandler extends Listener {
 	private boolean marketOpen = false;
 	private boolean schedulerRunning = false;
 	private long lastMarketUpdate;
+	private int timeouts = 0;
 	private int marketWindowId;
 
 	public MarketHandler(String npcColor) {
@@ -87,7 +92,7 @@ public class MarketHandler extends Listener {
 
 					if (!schedulerRunning) {
 						schedulerRunning = true;
-						scheduler.scheduleAtFixedRate(this::checkMarket, 1, 1, TimeUnit.MINUTES);
+						scheduler.scheduleAtFixedRate(this::checkMarket, MARKET_CHECK_INTERVAL, MARKET_CHECK_INTERVAL, TimeUnit.SECONDS);
 						lastMarketUpdate = System.currentTimeMillis();
 					}
 				}
@@ -108,7 +113,6 @@ public class MarketHandler extends Listener {
 			if (event.getPacket() instanceof ServerCloseWindowPacket) {
 				if (marketOpen) {
 					marketOpen = false;
-					BotManager.logMessage("Market Closed", "Market window closed, attempting to reopen");
 				}
 			}
 
@@ -130,13 +134,22 @@ public class MarketHandler extends Listener {
 	private void checkMarket() {
 		long current = System.currentTimeMillis();
 
-		if (current - lastMarketUpdate > 60000) {
-			System.out.println("Missing market updates, rejoining a world");
-			BotManager.logMessage("Market Timeout", "No market updates in last minute, rejoining world");
+		if (current - lastMarketUpdate > MARKET_TIMEOUT_INTERVAL) {
+			timeouts++;
 
-			scheduler.shutdown();
-			ClientManager.rejoinWorld();
+			if (timeouts >= TIMEOUT_THRESHOLD) {
+				System.out.println("Missing market updates, rejoining a world");
+				BotManager.logMessage("Market Timeout", "No market updates within threshold, rejoining world");
+
+				scheduler.shutdown();
+				ClientManager.rejoinWorld();
+			} else {
+				BotManager.logMessage("Missing Market Update", "Timeout #" + timeouts);
+			}
+			return;
 		}
+
+		timeouts = 0;
 	}
 
 	public void finish() {
