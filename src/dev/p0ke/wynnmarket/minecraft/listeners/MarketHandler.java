@@ -22,11 +22,12 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.Serve
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerCloseWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
-import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 
 import dev.p0ke.wynnmarket.data.managers.MarketItemManager;
 import dev.p0ke.wynnmarket.discord.BotManager;
 import dev.p0ke.wynnmarket.minecraft.ClientManager;
+import dev.p0ke.wynnmarket.minecraft.event.Listener;
+import dev.p0ke.wynnmarket.minecraft.event.PacketHandler;
 import dev.p0ke.wynnmarket.minecraft.util.StringUtil;
 
 public class MarketHandler extends Listener {
@@ -51,84 +52,71 @@ public class MarketHandler extends Listener {
 	private int marketWindowId;
 
 	public MarketHandler(String npcColor) {
-		if (npcColor.equalsIgnoreCase("red"))
-			npcTexture = RED_NPC_TEXTURE;
-		else
-			npcTexture = BLUE_NPC_TEXTURE;
+		npcTexture = (npcColor.equalsIgnoreCase("red")) ? RED_NPC_TEXTURE : BLUE_NPC_TEXTURE;
 	}
 
-	@Override
-	public void packetReceived(PacketReceivedEvent event) {
-		try {
-			if (event.getPacket() instanceof ServerPlayerPositionRotationPacket) {
-				ServerPlayerPositionRotationPacket positionPacket = (ServerPlayerPositionRotationPacket) event.getPacket();
-				ClientManager.getClient().getSession().send(new ClientTeleportConfirmPacket(positionPacket.getTeleportId()));
-				ClientManager.getClient().getSession().send(new ClientPlayerPositionPacket(true, positionPacket.getX(), positionPacket.getY(), positionPacket.getZ()));
-			}
+	@PacketHandler
+	public void onPlayerPosition(ServerPlayerPositionRotationPacket positionPacket) {
+		ClientManager.getClient().getSession().send(new ClientTeleportConfirmPacket(positionPacket.getTeleportId()));
+		ClientManager.getClient().getSession().send(new ClientPlayerPositionPacket(true, positionPacket.getX(), positionPacket.getY(), positionPacket.getZ()));
+	}
 
-			if (event.getPacket() instanceof ServerPlayerListEntryPacket) {
-				ServerPlayerListEntryPacket listEntryPacket = (ServerPlayerListEntryPacket) event.getPacket();
+	@PacketHandler
+	public void onListEntry(ServerPlayerListEntryPacket listEntryPacket) {
+		if (listEntryPacket.getAction() != PlayerListEntryAction.ADD_PLAYER) return;
 
-				if (listEntryPacket.getAction() == PlayerListEntryAction.ADD_PLAYER) {
-					for (PlayerListEntry entry : listEntryPacket.getEntries()) {
-						Property textures = entry.getProfile().getProperty("textures");
-						if (textures != null && textures.getValue().equals(npcTexture))
-							npcUuids.add(entry.getProfile().getId());
-					}
-				}
-			}
-
-			if (event.getPacket() instanceof ServerSpawnPlayerPacket) {
-				ServerSpawnPlayerPacket spawnPacket = (ServerSpawnPlayerPacket) event.getPacket();
-				if (npcUuids.contains(spawnPacket.getUuid()))
-					npcIds.add(spawnPacket.getEntityId());
-			}
-
-			if (event.getPacket() instanceof ServerEntityPositionPacket) {
-				ServerEntityPositionPacket positionPacket = (ServerEntityPositionPacket) event.getPacket();
-				if (!marketOpen && npcIds.contains(positionPacket.getEntityId())) {
-					ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket(positionPacket.getEntityId(), InteractAction.INTERACT, Hand.MAIN_HAND, false);
-					ClientManager.getClient().getSession().send(interactPacket);
-
-					if (!schedulerRunning) {
-						schedulerRunning = true;
-						scheduler.scheduleAtFixedRate(this::checkMarket, MARKET_CHECK_INTERVAL, MARKET_CHECK_INTERVAL, TimeUnit.SECONDS);
-						lastMarketUpdate = System.currentTimeMillis();
-					}
-				}
-			}
-
-			if (event.getPacket() instanceof ServerWindowItemsPacket) {
-				ServerWindowItemsPacket itemsPacket = (ServerWindowItemsPacket) event.getPacket();
-				String name = StringUtil.removeFormatting(WindowHandler.getWindowName(itemsPacket.getWindowId()));
-				if (name.contains("Trade Market")) {
-					marketOpen = true;
-					lastMarketUpdate = System.currentTimeMillis();
-					marketWindowId = itemsPacket.getWindowId();
-
-					MarketItemManager.scanPage(itemsPacket.getItems());
-				}
-			}
-
-			if (event.getPacket() instanceof ServerCloseWindowPacket) {
-				if (marketOpen) {
-					marketOpen = false;
-				}
-			}
-
-			if (event.getPacket() instanceof ServerSetSlotPacket) {
-				ServerSetSlotPacket slotPacket = (ServerSetSlotPacket) event.getPacket();
-				if (marketOpen && slotPacket.getWindowId() == marketWindowId) {
-					lastMarketUpdate = System.currentTimeMillis();
-
-					if (slotPacket.getSlot() < 54 && slotPacket.getSlot() % 9 < 7)
-						MarketItemManager.scanItem(slotPacket.getItem());
-				}
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
+		for (PlayerListEntry entry : listEntryPacket.getEntries()) {
+			Property textures = entry.getProfile().getProperty("textures");
+			if (textures != null && textures.getValue().equals(npcTexture))
+				npcUuids.add(entry.getProfile().getId());
 		}
+	}
+
+	@PacketHandler
+	public void onSpawn(ServerSpawnPlayerPacket spawnPacket) {
+		if (npcUuids.contains(spawnPacket.getUuid()))
+			npcIds.add(spawnPacket.getEntityId());
+	}
+
+	@PacketHandler
+	public void onEntityPosition(ServerEntityPositionPacket positionPacket) {
+		if (marketOpen || !npcIds.contains(positionPacket.getEntityId())) return;
+
+		ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket(positionPacket.getEntityId(), InteractAction.INTERACT, Hand.MAIN_HAND, false);
+		ClientManager.getClient().getSession().send(interactPacket);
+
+		if (!schedulerRunning) {
+			schedulerRunning = true;
+			scheduler.scheduleAtFixedRate(this::checkMarket, MARKET_CHECK_INTERVAL, MARKET_CHECK_INTERVAL, TimeUnit.SECONDS);
+			lastMarketUpdate = System.currentTimeMillis();
+		}
+	}
+
+	@PacketHandler
+	public void onWindowItems(ServerWindowItemsPacket itemsPacket) {
+		String name = StringUtil.removeFormatting(WindowHandler.getWindowName(itemsPacket.getWindowId()));
+		if (!name.contains("Trade Market")) return;
+
+		marketOpen = true;
+		lastMarketUpdate = System.currentTimeMillis();
+		marketWindowId = itemsPacket.getWindowId();
+
+		MarketItemManager.scanPage(itemsPacket.getItems());
+	}
+
+	@PacketHandler
+	public void onWindowClose(ServerCloseWindowPacket closePacket) {
+		if (marketOpen) marketOpen = false;
+	}
+
+	@PacketHandler
+	public void onSetSlot(ServerSetSlotPacket slotPacket) {
+		if (!marketOpen || slotPacket.getWindowId() != marketWindowId) return;
+
+		lastMarketUpdate = System.currentTimeMillis();
+
+		if (slotPacket.getSlot() < 54 && slotPacket.getSlot() % 9 < 7)
+			MarketItemManager.scanItem(slotPacket.getItem());
 	}
 
 	private void checkMarket() {

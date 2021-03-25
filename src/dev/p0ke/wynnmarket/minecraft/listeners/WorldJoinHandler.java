@@ -13,10 +13,11 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
-import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 
 import dev.p0ke.wynnmarket.discord.BotManager;
 import dev.p0ke.wynnmarket.minecraft.ClientManager;
+import dev.p0ke.wynnmarket.minecraft.event.Listener;
+import dev.p0ke.wynnmarket.minecraft.event.PacketHandler;
 import dev.p0ke.wynnmarket.minecraft.util.ActionIdUtil;
 import dev.p0ke.wynnmarket.minecraft.util.ItemParser;
 import dev.p0ke.wynnmarket.minecraft.util.StringUtil;
@@ -32,77 +33,72 @@ public class WorldJoinHandler extends Listener {
 	private int attempts = 0;
 	private static int lastWorld = 0;
 
-	@Override
-	public void packetReceived(PacketReceivedEvent event) {
-		try {
-			if (event.getPacket() instanceof ServerWindowItemsPacket) {
-				ServerWindowItemsPacket itemsPacket = (ServerWindowItemsPacket) event.getPacket();
-				if (itemsPacket.getWindowId() == 0 && itemsPacket.getItems()[36] != null) {
-					String name = ItemParser.getName(itemsPacket.getItems()[36]);
-					if (name.contains("Quick Connect")) {
-						ClientManager.reportLobbySuccess();
-						scheduler.scheduleAtFixedRate(this::useCompass, 10, 25, TimeUnit.SECONDS);
-					}
-					return;
-				}
-
-				String name = WindowHandler.getWindowName(itemsPacket.getWindowId());
-				if (name != null && name.contains("Wynncraft Servers")) {
-					for (int i = 0; i < 54; i++) {
-						ItemStack item = itemsPacket.getItems()[i];
-						if (item == null) continue;
-						String itemName = StringUtil.removeFormatting(ItemParser.getName(item));
-						List<String> itemLore = ItemParser.getLore(item);
-
-						Matcher m = WORLD_PATTERN.matcher(itemName);
-						if (!m.find()) continue;
-
-						int players = getPlayerCount(itemLore);
-						int worldNumber = Integer.parseInt(m.group(1));
-
-						if (lastWorld != worldNumber && !attemptedWorlds.contains(worldNumber) && players > -1 && players < 50) {
-							System.out.println("Attempting to join world " + worldNumber);
-							BotManager.logMessage("World Join", "Attempting to join world " + worldNumber);
-
-							ClientManager.clickWindow(itemsPacket.getWindowId(), i);
-							attemptedWorlds.add(worldNumber);
-							lastWorld = worldNumber;
-							return;
-						}
-					}
-				}
+	@PacketHandler
+	public void onWindowItems(ServerWindowItemsPacket itemsPacket) {
+		// inventory
+		if (itemsPacket.getWindowId() == 0 && itemsPacket.getItems()[36] != null) {
+			String name = ItemParser.getName(itemsPacket.getItems()[36]);
+			if (name.contains("Quick Connect")) {
+				ClientManager.reportLobbySuccess();
+				scheduler.scheduleAtFixedRate(this::useCompass, 10, 25, TimeUnit.SECONDS);
 			}
-
-			if (event.getPacket() instanceof ServerChatPacket) {
-				ServerChatPacket chatPacket = ((ServerChatPacket) event.getPacket());
-				if (chatPacket.getType() == MessageType.NOTIFICATION) return;
-
-				String message = StringUtil.parseText(chatPacket.getMessage().toString());
-				message = StringUtil.removeFormatting(message);
-				// if (!message.isEmpty()) System.out.println("[CHAT] " + message);
-
-				if (message.startsWith("Loading Resource Pack")) {
-					scheduler.shutdown();
-					attempts = 0;
-					BotManager.setStatus("WC" + lastWorld);
-					return;
-				}
-
-				if (message.startsWith("The server is restarting")) {
-					System.out.println("World restart, rejoining");
-					BotManager.logMessage("World Restart", "Rejoining...");
-
-					ClientManager.rejoinWorld();
-					return;
-				}
-			}
-
-			if (event.getPacket() instanceof ServerJoinGamePacket) {
-				ActionIdUtil.reset();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+			return;
 		}
+
+		// compass menu
+		String name = WindowHandler.getWindowName(itemsPacket.getWindowId());
+		if (name == null || !name.contains("Wynncraft Servers")) return;
+
+		for (int i = 0; i < 54; i++) {
+			ItemStack item = itemsPacket.getItems()[i];
+			if (item == null) continue;
+			String itemName = StringUtil.removeFormatting(ItemParser.getName(item));
+			List<String> itemLore = ItemParser.getLore(item);
+
+			Matcher m = WORLD_PATTERN.matcher(itemName);
+			if (!m.find()) continue;
+
+			int players = getPlayerCount(itemLore);
+			int worldNumber = Integer.parseInt(m.group(1));
+
+			if (lastWorld != worldNumber && !attemptedWorlds.contains(worldNumber) && players > -1 && players < 50) {
+				System.out.println("Attempting to join world " + worldNumber);
+				BotManager.logMessage("World Join", "Attempting to join world " + worldNumber);
+
+				ClientManager.clickWindow(itemsPacket.getWindowId(), i);
+				attemptedWorlds.add(worldNumber);
+				lastWorld = worldNumber;
+				return;
+			}
+		}
+	}
+
+	@PacketHandler
+	public void onChat(ServerChatPacket chatPacket) {
+		if (chatPacket.getType() == MessageType.NOTIFICATION) return;
+
+		String message = StringUtil.parseText(chatPacket.getMessage().toString());
+		message = StringUtil.removeFormatting(message);
+
+		if (message.startsWith("Loading Resource Pack")) {
+			scheduler.shutdown();
+			attempts = 0;
+			BotManager.setStatus("WC" + lastWorld);
+			return;
+		}
+
+		if (message.startsWith("The server is restarting")) {
+			System.out.println("World restart, rejoining");
+			BotManager.logMessage("World Restart", "Rejoining...");
+
+			ClientManager.rejoinWorld();
+			return;
+		}
+	}
+
+	@PacketHandler
+	public void onJoin(ServerJoinGamePacket joinPacket) {
+		ActionIdUtil.reset();
 	}
 
 	private void useCompass() {

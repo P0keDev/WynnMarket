@@ -19,7 +19,8 @@ import com.github.steveice10.packetlib.Client;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 
 import dev.p0ke.wynnmarket.discord.BotManager;
-import dev.p0ke.wynnmarket.minecraft.listeners.Listener;
+import dev.p0ke.wynnmarket.minecraft.event.EventBus;
+import dev.p0ke.wynnmarket.minecraft.event.Listener;
 import dev.p0ke.wynnmarket.minecraft.listeners.MarketHandler;
 import dev.p0ke.wynnmarket.minecraft.listeners.ResourcePackHandler;
 import dev.p0ke.wynnmarket.minecraft.listeners.WindowHandler;
@@ -32,6 +33,8 @@ public class ClientManager {
 	private static String username;
 	private static String password;
 	private static String npcColor;
+
+	private static EventBus eventBus;
 	private static List<Listener> listeners = new ArrayList<>();
 
 	private static ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -41,10 +44,7 @@ public class ClientManager {
 		username = user;
 		password = pass;
 		npcColor = color;
-		startClient();
-	}
 
-	private static void startClient() {
 		MinecraftProtocol protocol = null;
 		try {
 			protocol = new MinecraftProtocol(username, password);
@@ -54,17 +54,20 @@ public class ClientManager {
 			return;
 		}
 
-		client = new Client("play.wynncraft.com", 25565, protocol, new TcpSessionFactory());
+		client = new Client("play.wynncraft.com", 25565, protocol, new TcpSessionFactory());;
+		eventBus = new EventBus(client);
 
+		connectClient();
+	}
+
+	private static void connectClient() {
 		resetListeners();
-
 		client.getSession().connect();
 		startLobbyChecker();
 	}
 
 	public static void resetListeners() {
 		listeners.forEach(l -> l.finish());
-		listeners.forEach(l -> client.getSession().removeListener(l));
 		listeners.clear();
 
 		listeners.add(new WindowHandler());
@@ -72,12 +75,13 @@ public class ClientManager {
 		listeners.add(new ResourcePackHandler());
 		listeners.add(new MarketHandler(npcColor));
 
-		listeners.forEach(l -> client.getSession().addListener(l));
+		eventBus.clearListeners();
+		listeners.forEach(l -> eventBus.registerListener(l));
 	}
 
 	public static void reconnect() {
 		client.getSession().disconnect("Finished");
-		startClient();
+		scheduler.schedule(ClientManager::connectClient, 10, TimeUnit.SECONDS);
 
 		BotManager.clearStatus();
 	}

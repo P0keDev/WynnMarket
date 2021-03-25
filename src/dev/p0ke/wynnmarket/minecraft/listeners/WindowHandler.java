@@ -8,9 +8,10 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientConfi
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerCloseWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerConfirmTransactionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
-import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 
 import dev.p0ke.wynnmarket.minecraft.ClientManager;
+import dev.p0ke.wynnmarket.minecraft.event.Listener;
+import dev.p0ke.wynnmarket.minecraft.event.PacketHandler;
 import dev.p0ke.wynnmarket.minecraft.util.StringUtil;
 
 public class WindowHandler extends Listener {
@@ -18,22 +19,25 @@ public class WindowHandler extends Listener {
 	private static Map<Integer, String> windows = new HashMap<>();
 	private static int currentWindow = -1;
 
-	@Override
-	public void packetReceived(PacketReceivedEvent event) {
-		if (event.getPacket() instanceof ServerOpenWindowPacket) {
-			ServerOpenWindowPacket windowPacket = (ServerOpenWindowPacket) event.getPacket();
-			windows.put(windowPacket.getWindowId(), StringUtil.parseText(windowPacket.getName()));
-			currentWindow = windowPacket.getWindowId();
-		}
+	@PacketHandler
+	public void onWindowOpen(ServerOpenWindowPacket windowPacket) {
+		windows.put(windowPacket.getWindowId(), StringUtil.parseText(windowPacket.getName()));
+		currentWindow = windowPacket.getWindowId();
+	}
 
-		if (event.getPacket() instanceof ServerCloseWindowPacket || event.getPacket() instanceof ClientCloseWindowPacket) {
-			currentWindow = -1;
-		}
+	@PacketHandler
+	public void onServerClose(ServerCloseWindowPacket closePacket) {
+		currentWindow = -1;
+	}
 
-		if (event.getPacket() instanceof ServerConfirmTransactionPacket) {
-			ServerConfirmTransactionPacket confirmPacket = (ServerConfirmTransactionPacket) event.getPacket();
-			ClientManager.getClient().getSession().send(new ClientConfirmTransactionPacket(confirmPacket.getWindowId(), confirmPacket.getActionId(), true));
-		}
+	@PacketHandler
+	public void onClientClose(ClientCloseWindowPacket closePacket) {
+		currentWindow = -1;
+	}
+
+	@PacketHandler
+	public void onConfirm(ServerConfirmTransactionPacket confirmPacket) {
+		ClientManager.getClient().getSession().send(new ClientConfirmTransactionPacket(confirmPacket.getWindowId(), confirmPacket.getActionId(), true));
 	}
 
 	public static String getWindowName(int id) {
