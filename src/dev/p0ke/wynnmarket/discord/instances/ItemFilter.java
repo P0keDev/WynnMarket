@@ -23,7 +23,7 @@ public class ItemFilter {
 
 		for (String line : item.getLore()) {
 			line = line.replace("*", "");
-			if (!stat.matches(line)) continue;
+			if (line.isEmpty() || !stat.matches(line)) continue;
 
 			try {
 				int id = stat.getValue(line);

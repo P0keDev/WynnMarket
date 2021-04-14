@@ -8,7 +8,7 @@ import dev.p0ke.wynnmarket.discord.BotManager;
 
 public class MarketItemManager {
 
-	private static EvictingQueue<MarketItem> recentItems = EvictingQueue.create(100);
+	private static EvictingQueue<MarketItem> recentItems = EvictingQueue.create(64);
 
 	public static void scanPage(ItemStack[] marketPage) {
 		for (int slot = 0; slot < 54; slot++) {
