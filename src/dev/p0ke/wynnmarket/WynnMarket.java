@@ -21,7 +21,7 @@ public class WynnMarket {
 
 			BotManager.start(login.getProperty("discordtoken"));
 			MarketLogManager.start();
-			ClientManager.startClient(login.getProperty("mcuser"), login.getProperty("mcpass"), login.getProperty("npc", "blue"));
+			ClientManager.startClient(login.getProperty("mcuser"), login.getProperty("mcpass"), login.getProperty("npc"));
 		} catch (Exception e) {
 			System.out.println("Failed to load login credentials:");
 			e.printStackTrace();

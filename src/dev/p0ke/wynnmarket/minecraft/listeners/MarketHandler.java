@@ -32,9 +32,6 @@ import dev.p0ke.wynnmarket.minecraft.util.StringUtil;
 
 public class MarketHandler extends Listener {
 
-	private static final String BLUE_NPC_TEXTURE = "eyJ0aW1lc3RhbXAiOjE1NDQ0MTY1MTgzNTIsInByb2ZpbGVJZCI6IjdlZGE1Y2JiODRkMDQzZGI4YjZiYWE3YTc1YTVhZWU4IiwicHJvZmlsZU5hbWUiOiJDcnVua2Fjb2xhIiwic2lnbmF0dXJlUmVxdWlyZWQiOnRydWUsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS82YjUyZmFkNmM3NjhlMjQ2NjM4OGY1MTEyYjE3ODAzNTIzYjk4ZWNhZjQ4NGViMGM3MTE5YWQ2MDVlYTVkZDRiIn19fQ==";
-	private static final String RED_NPC_TEXTURE = "eyJ0aW1lc3RhbXAiOjE1NDQ0MTY0ODc4MTUsInByb2ZpbGVJZCI6IjdlZGE1Y2JiODRkMDQzZGI4YjZiYWE3YTc1YTVhZWU4IiwicHJvZmlsZU5hbWUiOiJDcnVua2Fjb2xhIiwic2lnbmF0dXJlUmVxdWlyZWQiOnRydWUsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9lMjJhZjMxYTgyNTRhYjg4ZDQ1ODBlNDc3Njg0NGMwNDM0N2QzOWU5ODYzMmZkYWZhMWI4N2Y5ZDBmYjcxZThmIn19fQ==";
-
 	private static final int MARKET_CHECK_INTERVAL = 60;
 	private static final int MARKET_TIMEOUT_INTERVAL = 60;
 	private static final int TIMEOUT_THRESHOLD = 3;
@@ -51,8 +48,8 @@ public class MarketHandler extends Listener {
 	private int timeouts = 0;
 	private int marketWindowId;
 
-	public MarketHandler(String npcColor) {
-		npcTexture = (npcColor.equalsIgnoreCase("red")) ? RED_NPC_TEXTURE : BLUE_NPC_TEXTURE;
+	public MarketHandler(String npc) {
+		npcTexture = npc;
 	}
 
 	@PacketHandler

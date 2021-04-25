@@ -32,7 +32,7 @@ public class ClientManager {
 	private static Client client;
 	private static String username;
 	private static String password;
-	private static String npcColor;
+	private static String npcId;
 
 	private static EventBus eventBus;
 	private static List<Listener> listeners = new ArrayList<>();
@@ -40,11 +40,15 @@ public class ClientManager {
 	private static ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 	private static boolean lobbySuccess = false;
 
-	public static void startClient(String user, String pass, String color) {
+	public static void startClient(String user, String pass, String npc) {
 		username = user;
 		password = pass;
-		npcColor = color;
+		npcId = npc;
 
+		startClient();
+	}
+
+	private static void startClient() {
 		MinecraftProtocol protocol = null;
 		try {
 			protocol = new MinecraftProtocol(username, password);
@@ -54,7 +58,7 @@ public class ClientManager {
 			return;
 		}
 
-		client = new Client("play.wynncraft.com", 25565, protocol, new TcpSessionFactory());;
+		client = new Client("play.wynncraft.com", 25565, protocol, new TcpSessionFactory());
 		eventBus = new EventBus(client);
 
 		connectClient();
@@ -73,7 +77,7 @@ public class ClientManager {
 		listeners.add(new WindowHandler());
 		listeners.add(new WorldJoinHandler());
 		listeners.add(new ResourcePackHandler());
-		listeners.add(new MarketHandler(npcColor));
+		listeners.add(new MarketHandler(npcId));
 
 		eventBus.clearListeners();
 		listeners.forEach(l -> eventBus.registerListener(l));
@@ -81,7 +85,7 @@ public class ClientManager {
 
 	public static void reconnect() {
 		client.getSession().disconnect("Finished");
-		scheduler.schedule(ClientManager::connectClient, 10, TimeUnit.SECONDS);
+		startClient();
 
 		BotManager.clearStatus();
 	}
