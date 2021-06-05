@@ -20,7 +20,7 @@ import dev.p0ke.wynnmarket.data.instances.MarketItem;
 
 public class MarketLogManager {
 
-	private static final int SAVE_INTERVAL = 5;
+	private static final int SAVE_INTERVAL = 5; // time, in minutes, between file writes
 
 	private static final Type entryType = new TypeToken<List<MarketEntry>>(){}.getType();
 
@@ -33,9 +33,7 @@ public class MarketLogManager {
 
 	public static void start() {
 		currentDate = LocalDateTime.now();
-
 		createLog();
-
 		Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(MarketLogManager::saveLog, SAVE_INTERVAL, SAVE_INTERVAL, TimeUnit.MINUTES);
 	}
 
@@ -43,16 +41,16 @@ public class MarketLogManager {
 		entries.add(new MarketEntry(item));
 	}
 
-	public static void createLog() {
+	private static void createLog() {
 		try {
 			logFile = new File("./marketdb/" + currentDate.format(DateTimeFormatter.ISO_LOCAL_DATE) + ".json");
-			logFile.getParentFile().mkdir();
+			logFile.getParentFile().mkdir(); // create marketdb if it doesn't exist
 
-			if (!logFile.exists()) {
+			if (!logFile.exists()) { // create file
 				logFile.createNewFile();
 				entries = new ArrayList<>();
 				saveLog();
-			} else {
+			} else { // read entries
 				FileReader logReader = new FileReader(logFile);
 				entries = gson.fromJson(logReader, entryType);
 				logReader.close();
@@ -64,7 +62,7 @@ public class MarketLogManager {
 		}
 	}
 
-	public static void saveLog() {
+	private static void saveLog() {
 		try {
 			BufferedWriter logWriter = new BufferedWriter(new FileWriter(logFile));
 			logWriter.write(gson.toJson(new ArrayList<>(entries), entryType));
@@ -77,19 +75,19 @@ public class MarketLogManager {
 		}
 	}
 
-	public static void loadLatestEntries() {
-		if (entries.size() <= 100) {
+	private static void loadLatestEntries() {
+		if (entries.size() <= MarketItemManager.QUEUE_SIZE) {
 			for (MarketEntry me : entries) {
 				MarketItemManager.addItem(me.getItem());
 			}
 		} else {
-			for (int i = entries.size() - 100; i < entries.size(); i++) {
+			for (int i = entries.size() - MarketItemManager.QUEUE_SIZE; i < entries.size(); i++) {
 				MarketItemManager.addItem(entries.get(i).getItem());
 			}
 		}
 	}
 
-	public static void checkDate() {
+	private static void checkDate() {
 		if (LocalDateTime.now().getDayOfYear() != currentDate.getDayOfYear()) {
 			currentDate = LocalDateTime.now();
 			entries.clear();

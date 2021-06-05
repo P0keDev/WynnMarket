@@ -8,6 +8,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.github.steveice10.mc.auth.data.GameProfile.Property;
+import com.github.steveice10.mc.protocol.data.game.MessageType;
 import com.github.steveice10.mc.protocol.data.game.PlayerListEntry;
 import com.github.steveice10.mc.protocol.data.game.PlayerListEntryAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
@@ -15,6 +16,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPlayerListEntryPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
@@ -23,11 +25,14 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerClose
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
 
+import dev.p0ke.wynnmarket.data.instances.MarketItem;
 import dev.p0ke.wynnmarket.data.managers.MarketItemManager;
-import dev.p0ke.wynnmarket.discord.BotManager;
-import dev.p0ke.wynnmarket.minecraft.ClientManager;
+import dev.p0ke.wynnmarket.discord.DiscordManager;
+import dev.p0ke.wynnmarket.minecraft.MinecraftManager;
+import dev.p0ke.wynnmarket.minecraft.enums.RarityFilter;
 import dev.p0ke.wynnmarket.minecraft.event.Listener;
 import dev.p0ke.wynnmarket.minecraft.event.PacketHandler;
+import dev.p0ke.wynnmarket.minecraft.util.ItemParser;
 import dev.p0ke.wynnmarket.minecraft.util.StringUtil;
 
 public class MarketHandler extends Listener {
@@ -47,6 +52,12 @@ public class MarketHandler extends Listener {
 	private long lastMarketUpdate;
 	private int timeouts = 0;
 	private int marketWindowId;
+	private int lastWindowId = -1;
+
+	private boolean searching = false;
+	private String searchName = null;
+	private RarityFilter searchRarity = null;
+	private List<MarketItem> searchResults;
 
 	public MarketHandler(String npc) {
 		npcTexture = npc;
@@ -54,8 +65,8 @@ public class MarketHandler extends Listener {
 
 	@PacketHandler
 	public void onPlayerPosition(ServerPlayerPositionRotationPacket positionPacket) {
-		ClientManager.getClient().getSession().send(new ClientTeleportConfirmPacket(positionPacket.getTeleportId()));
-		ClientManager.getClient().getSession().send(new ClientPlayerPositionPacket(true, positionPacket.getX(), positionPacket.getY(), positionPacket.getZ()));
+		MinecraftManager.getClient().getSession().send(new ClientTeleportConfirmPacket(positionPacket.getTeleportId()));
+		MinecraftManager.getClient().getSession().send(new ClientPlayerPositionPacket(true, positionPacket.getX(), positionPacket.getY(), positionPacket.getZ()));
 	}
 
 	@PacketHandler
@@ -80,7 +91,7 @@ public class MarketHandler extends Listener {
 		if (marketOpen || !npcIds.contains(positionPacket.getEntityId())) return;
 
 		ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket(positionPacket.getEntityId(), InteractAction.INTERACT, Hand.MAIN_HAND, false);
-		ClientManager.getClient().getSession().send(interactPacket);
+		MinecraftManager.getClient().getSession().send(interactPacket);
 
 		if (!schedulerRunning) {
 			schedulerRunning = true;
@@ -92,18 +103,55 @@ public class MarketHandler extends Listener {
 	@PacketHandler
 	public void onWindowItems(ServerWindowItemsPacket itemsPacket) {
 		String name = StringUtil.removeFormatting(WindowHandler.getWindowName(itemsPacket.getWindowId()));
-		if (!name.contains("Trade Market")) return;
 
-		marketOpen = true;
-		lastMarketUpdate = System.currentTimeMillis();
-		marketWindowId = itemsPacket.getWindowId();
+		if (lastWindowId == itemsPacket.getWindowId()) return; // avoid duplicate packets
+		lastWindowId = itemsPacket.getWindowId();
 
-		MarketItemManager.scanPage(itemsPacket.getItems());
+		if (name.contains("Trade Market")) {
+			marketOpen = true;
+			lastMarketUpdate = System.currentTimeMillis();
+			marketWindowId = itemsPacket.getWindowId();
+
+			MarketItemManager.scanPage(itemsPacket.getItems());
+			return;
+		}
+
+		if (name.contains("Filter Items") && searching) {
+			// 3 options: only by name, only by rarity, or by both
+			// if the name filter is in slot 0 or 1, we're ready to execute the search
+			// if it isn't but the rarity filter is in slot 0, we either click the name filter (if defined) or execute
+			// if neither are in slot 0, we click the rarity filter if one is defined, or the name filter
+
+			if (ItemParser.getName(itemsPacket.getItems()[0]).contains("Name Contains")
+					|| ItemParser.getName(itemsPacket.getItems()[1]).contains("Name Contains")) {
+				MinecraftManager.clickWindow(itemsPacket.getWindowId(), 53); // search button
+				return;
+			}
+
+			if (searchRarity != null && ItemParser.getName(itemsPacket.getItems()[0]).contains(searchRarity.name)) {
+				MinecraftManager.clickWindow(itemsPacket.getWindowId(), (searchName != null) ? 3 : 53); // 3 = name filter, 53 = search button
+				return;
+			}
+
+			MinecraftManager.clickWindow(itemsPacket.getWindowId(), (searchRarity != null) ? searchRarity.slot : 3); // 3 = name filter slot
+			return;
+		}
+
+		if (name.contains("Search Results") && searching) {
+			synchronized (this) {
+				MarketItemManager.scanSearchPage(itemsPacket.getItems(), searchResults);
+				searching = false;
+				notifyAll();
+				MinecraftManager.closeWindow(itemsPacket.getWindowId());
+				marketOpen = false;
+				return;
+			}
+		}
 	}
 
 	@PacketHandler
 	public void onWindowClose(ServerCloseWindowPacket closePacket) {
-		if (marketOpen) marketOpen = false;
+		if (marketOpen && !searching) marketOpen = false;
 	}
 
 	@PacketHandler
@@ -116,6 +164,40 @@ public class MarketHandler extends Listener {
 			MarketItemManager.scanItem(slotPacket.getItem());
 	}
 
+	@PacketHandler
+	public void onChat(ServerChatPacket chatPacket) {
+		if (chatPacket.getType() == MessageType.NOTIFICATION) return;
+
+		String message = StringUtil.parseText(chatPacket.getMessage().toString());
+		message = StringUtil.removeFormatting(message);
+
+		if (message.startsWith("Type the item name") && searchName != null)
+			MinecraftManager.sendMessage(searchName);
+
+	}
+
+	public synchronized List<MarketItem> searchItems(String search, RarityFilter rarity) {
+		if (!marketOpen) return null;
+		if (search == null && rarity == null) return null;
+
+		searching = true;
+		searchName = search;
+		searchRarity = rarity;
+		searchResults = new ArrayList<>();
+
+		MinecraftManager.clickWindow(marketWindowId, 35);
+		while (searching) {
+			try {
+				wait();
+			} catch (InterruptedException e) { }
+		}
+
+		searchName = null;
+		searchRarity = null;
+
+		return searchResults;
+	}
+
 	private void checkMarket() {
 		long current = System.currentTimeMillis();
 
@@ -124,12 +206,12 @@ public class MarketHandler extends Listener {
 
 			if (timeouts >= TIMEOUT_THRESHOLD) {
 				System.out.println("Missing market updates, rejoining a world");
-				BotManager.logMessage("Market Timeout", "No market updates within threshold, rejoining world");
+				DiscordManager.logMessage("Market Timeout", "No market updates within threshold, rejoining world");
 
 				scheduler.shutdown();
-				ClientManager.rejoinWorld();
+				MinecraftManager.rejoinWorld();
 			} else {
-				BotManager.logMessage("Missing Market Update", "Timeout #" + timeouts);
+				DiscordManager.logMessage("Missing Market Update", "Timeout #" + timeouts);
 			}
 			return;
 		}
@@ -137,8 +219,10 @@ public class MarketHandler extends Listener {
 		timeouts = 0;
 	}
 
-	public void finish() {
+	public synchronized void finish() {
 		scheduler.shutdown();
+		searching = false;
+		notifyAll();
 	}
 
 }

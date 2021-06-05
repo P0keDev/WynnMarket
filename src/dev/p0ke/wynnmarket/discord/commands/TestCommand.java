@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.javacord.api.event.message.MessageCreateEvent;
 
-import dev.p0ke.wynnmarket.minecraft.ClientManager;
+import dev.p0ke.wynnmarket.minecraft.MinecraftManager;
 
 public class TestCommand implements Command {
 
@@ -16,8 +16,8 @@ public class TestCommand implements Command {
 
 	@Override
 	public void execute(MessageCreateEvent event, String[] args) {
-		ClientManager.resetListeners();
-		ClientManager.sendMessage("/hub");
+		MinecraftManager.resetListeners();
+		MinecraftManager.sendMessage("/hub");
 	}
 
 }

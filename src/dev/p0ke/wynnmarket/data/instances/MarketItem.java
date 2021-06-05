@@ -57,6 +57,7 @@ public class MarketItem {
 		return new MarketItem(this.name, 1, 0, this.lore);
 	}
 
+
 	@Override
 	public String toString() {
 		return name + " (" + price + "E) " + ((quantity > 1) ? ("x" + quantity + "\n") : ("\n")) + String.join("\n", lore);
@@ -82,27 +83,32 @@ public class MarketItem {
 	}
 
 	public static MarketItem fromItemStack(ItemStack item) {
+		// clean garbage wynn text and grab lore
 		String name = StringUtil.removeFormatting(ItemParser.getName(item)).replace("ÀÀÀ", " ").replace("À", "");
 		List<String> itemLore = ItemParser.getLore(item);
+
+		if (name.isEmpty() || itemLore.isEmpty()) return null;
 
 		List<String> lore = new ArrayList<>();
 		int price = 0;
 		int quantity = 1;
 
+		// match price and quantity, if found; quantity of 1 will not have any extra text in tooltip
 		Matcher m = PRICE_PATTERN.matcher(itemLore.get(2).replace(",", ""));
 		if (m.matches()) {
 			price = Integer.parseInt(m.group(2));
 			if (m.group(1) != null) quantity = Integer.parseInt(m.group(1));
 		}
 
+		// iterate through each lore line, skipping market info at beginning and wynn lore at end
 		for (int i = 3; i < itemLore.size(); i++) {
 			String line = itemLore.get(i);
-			if (line.isEmpty() && lore.isEmpty()) continue;
+			if (line.isEmpty() && lore.isEmpty()) continue; // don't put empty lines at top
 
-			lore.add(line.replace("ÀÀÀ", " ").replace("À", ""));
+			lore.add(line.replace("ÀÀÀ", " ").replace("À", "")); // remove garbage text
 
 			Matcher m1 = TIER_PATTERN.matcher(line);
-			if (m1.matches()) break;
+			if (m1.matches()) break; // don't include wynn lore
 		}
 
 		return new MarketItem(name, quantity, price, lore);

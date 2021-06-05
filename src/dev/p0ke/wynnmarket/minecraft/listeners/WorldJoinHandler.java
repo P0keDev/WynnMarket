@@ -14,8 +14,8 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
 
-import dev.p0ke.wynnmarket.discord.BotManager;
-import dev.p0ke.wynnmarket.minecraft.ClientManager;
+import dev.p0ke.wynnmarket.discord.DiscordManager;
+import dev.p0ke.wynnmarket.minecraft.MinecraftManager;
 import dev.p0ke.wynnmarket.minecraft.event.Listener;
 import dev.p0ke.wynnmarket.minecraft.event.PacketHandler;
 import dev.p0ke.wynnmarket.minecraft.util.ActionIdUtil;
@@ -39,7 +39,7 @@ public class WorldJoinHandler extends Listener {
 		if (itemsPacket.getWindowId() == 0 && itemsPacket.getItems()[36] != null) {
 			String name = ItemParser.getName(itemsPacket.getItems()[36]);
 			if (name.contains("Quick Connect")) {
-				ClientManager.reportLobbySuccess();
+				MinecraftManager.reportLobbySuccess();
 				scheduler.scheduleAtFixedRate(this::useCompass, 10, 25, TimeUnit.SECONDS);
 			}
 			return;
@@ -63,9 +63,9 @@ public class WorldJoinHandler extends Listener {
 
 			if (lastWorld != worldNumber && !attemptedWorlds.contains(worldNumber) && players > -1 && players < 50) {
 				System.out.println("Attempting to join world " + worldNumber);
-				BotManager.logMessage("World Join", "Attempting to join world " + worldNumber);
+				DiscordManager.logMessage("World Join", "Attempting to join world " + worldNumber);
 
-				ClientManager.clickWindow(itemsPacket.getWindowId(), i);
+				MinecraftManager.clickWindow(itemsPacket.getWindowId(), i);
 				attemptedWorlds.add(worldNumber);
 				lastWorld = worldNumber;
 				return;
@@ -83,15 +83,15 @@ public class WorldJoinHandler extends Listener {
 		if (message.startsWith("Loading Resource Pack")) {
 			scheduler.shutdown();
 			attempts = 0;
-			BotManager.setStatus("WC" + lastWorld);
+			DiscordManager.setStatus("WC" + lastWorld);
 			return;
 		}
 
 		if (message.startsWith("The server is restarting")) {
 			System.out.println("World restart, rejoining");
-			BotManager.logMessage("World Restart", "Rejoining...");
+			DiscordManager.logMessage("World Restart", "Rejoining...");
 
-			ClientManager.rejoinWorld();
+			MinecraftManager.rejoinWorld();
 			return;
 		}
 	}
@@ -107,13 +107,13 @@ public class WorldJoinHandler extends Listener {
 
 		if (attempts >= 5) {
 			System.out.println("Attempt limit reached, reconnecting");
-			BotManager.logMessage("Reconnecting", "Failed to join a world, reconnecting to Wynn");
+			DiscordManager.logMessage("Reconnecting", "Failed to join a world, reconnecting to Wynn");
 			scheduler.shutdown();
-			ClientManager.reconnect();
+			MinecraftManager.reconnect();
 			return;
 		}
 
-		ClientManager.useItem(0);
+		MinecraftManager.useItem(0);
 	}
 
 	public void finish() {

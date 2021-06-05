@@ -14,11 +14,14 @@ import com.github.steveice10.mc.protocol.data.game.window.WindowAction;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerChangeHeldItemPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientWindowActionPacket;
 import com.github.steveice10.packetlib.Client;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 
-import dev.p0ke.wynnmarket.discord.BotManager;
+import dev.p0ke.wynnmarket.data.instances.MarketItem;
+import dev.p0ke.wynnmarket.discord.DiscordManager;
+import dev.p0ke.wynnmarket.minecraft.enums.RarityFilter;
 import dev.p0ke.wynnmarket.minecraft.event.EventBus;
 import dev.p0ke.wynnmarket.minecraft.event.Listener;
 import dev.p0ke.wynnmarket.minecraft.listeners.MarketHandler;
@@ -27,7 +30,7 @@ import dev.p0ke.wynnmarket.minecraft.listeners.WindowHandler;
 import dev.p0ke.wynnmarket.minecraft.listeners.WorldJoinHandler;
 import dev.p0ke.wynnmarket.minecraft.util.ActionIdUtil;
 
-public class ClientManager {
+public class MinecraftManager {
 
 	private static Client client;
 	private static String username;
@@ -39,6 +42,8 @@ public class ClientManager {
 
 	private static ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 	private static boolean lobbySuccess = false;
+
+	private static MarketHandler market;
 
 	public static void startClient(String user, String pass, String npc) {
 		username = user;
@@ -77,17 +82,22 @@ public class ClientManager {
 		listeners.add(new WindowHandler());
 		listeners.add(new WorldJoinHandler());
 		listeners.add(new ResourcePackHandler());
-		listeners.add(new MarketHandler(npcId));
+		listeners.add(market = new MarketHandler(npcId));
 
 		eventBus.clearListeners();
 		listeners.forEach(l -> eventBus.registerListener(l));
+	}
+
+	public static synchronized List<MarketItem> searchItem(String search, RarityFilter rarity) {
+		if (search != null && search.equalsIgnoreCase("cancel")) return null; // prevent infinite loop
+		return market.searchItems(search, rarity);
 	}
 
 	public static void reconnect() {
 		client.getSession().disconnect("Finished");
 		startClient();
 
-		BotManager.clearStatus();
+		DiscordManager.clearStatus();
 	}
 
 	public static void rejoinWorld() {
@@ -95,7 +105,7 @@ public class ClientManager {
 		sendMessage("/hub");
 		startLobbyChecker();
 
-		BotManager.clearStatus();
+		DiscordManager.clearStatus();
 	}
 
 	public static void sendMessage(String message) {
@@ -112,9 +122,13 @@ public class ClientManager {
 		client.getSession().send(new ClientWindowActionPacket(windowId, action, slot, null, WindowAction.CLICK_ITEM, ClickItemParam.LEFT_CLICK));
 	}
 
+	public static void closeWindow(int windowId) {
+		client.getSession().send(new ClientCloseWindowPacket(windowId));
+	}
+
 	public static void startLobbyChecker() {
 		lobbySuccess = false;
-		scheduler.schedule(ClientManager::checkLobbySuccess, 30, TimeUnit.SECONDS);
+		scheduler.schedule(MinecraftManager::checkLobbySuccess, 30, TimeUnit.SECONDS);
 	}
 
 	public static void reportLobbySuccess() {

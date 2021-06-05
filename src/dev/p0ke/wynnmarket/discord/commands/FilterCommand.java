@@ -36,9 +36,9 @@ public class FilterCommand implements Command {
 		if (arg.endsWith("clear")) {
 			String item = StringUtils.substringBeforeLast(arg, " ");
 			if (ChannelManager.clearItemFilters(event.getChannel().getIdAsString(), event.getMessageAuthor().getIdAsString(), item)) {
-				event.getChannel().sendMessage("Successfully cleared filters from " + WordUtils.capitalize(item) + "!");
+				event.getMessage().reply("Successfully cleared filters from " + WordUtils.capitalize(item) + "!");
 			} else {
-				event.getChannel().sendMessage("Failed to clear filters! Are you following that item?");
+				event.getMessage().reply("Failed to clear filters! Are you following that item?");
 			}
 			return;
 		}
@@ -46,7 +46,7 @@ public class FilterCommand implements Command {
 		Matcher m = FORMAT.matcher(arg);
 
 		if (!m.matches()) {
-			event.getChannel().sendMessage("Usage: `$filter <item> <comparison> <value> <stat>`");
+			event.getMessage().reply("Usage: `$filter <item> <comparison> <value> <stat>`");
 			return;
 		}
 
@@ -57,21 +57,21 @@ public class FilterCommand implements Command {
 		StatType stat = StatType.fromShorthand(statString);
 
 		if (comp == null) {
-			event.getChannel().sendMessage("Valid comparisons are: = != < > <= >=");
+			event.getMessage().reply("Valid comparisons are: = != < > <= >=");
 			return;
 		}
 
 		if (stat == null) {
-			event.getChannel().sendMessage(statString + " is not a valid stat!");
+			event.getMessage().reply(statString + " is not a valid stat!");
 			return;
 		}
 
 		ItemFilter filter = new ItemFilter(stat, value, comp);
 
 		if (ChannelManager.addItemFilter(event.getChannel().getIdAsString(), event.getMessageAuthor().getIdAsString(), item, filter)) {
-			event.getChannel().sendMessage("Successfully added filter (" + filter + ") to " + WordUtils.capitalize(item) + "!");
+			event.getMessage().reply("Successfully added filter (" + filter + ") to " + WordUtils.capitalize(item) + "!");
 		} else {
-			event.getChannel().sendMessage("Failed to add filter! Are you following that item?");
+			event.getMessage().reply("Failed to add filter! Are you following that item?");
 		}
 
 	}

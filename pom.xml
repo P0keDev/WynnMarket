@@ -11,7 +11,7 @@
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
-		
+
 		<repository>
 			<id>cronapp.io</id>
 			<url>https://artifactory.cronapp.io/public-release/</url>
@@ -41,7 +41,7 @@
 		<dependency>
 			<groupId>org.javacord</groupId>
 			<artifactId>javacord</artifactId>
-			<version>3.1.1</version>
+			<version>3.3.0</version>
 			<type>pom</type>
 		</dependency>
 
@@ -49,6 +49,12 @@
 			<groupId>com.github.Steveice10</groupId>
 			<artifactId>MCProtocolLib</artifactId>
 			<version>1.16.4-1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.googlecode.lanterna</groupId>
+			<artifactId>lanterna</artifactId>
+			<version>3.1.1</version>
 		</dependency>
 	</dependencies>
 

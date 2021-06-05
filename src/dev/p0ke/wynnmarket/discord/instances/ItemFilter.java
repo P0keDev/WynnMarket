@@ -1,7 +1,7 @@
 package dev.p0ke.wynnmarket.discord.instances;
 
 import dev.p0ke.wynnmarket.data.instances.MarketItem;
-import dev.p0ke.wynnmarket.discord.BotManager;
+import dev.p0ke.wynnmarket.discord.DiscordManager;
 import dev.p0ke.wynnmarket.discord.enums.Comparison;
 import dev.p0ke.wynnmarket.discord.enums.StatType;
 
@@ -29,7 +29,7 @@ public class ItemFilter {
 				int id = stat.getValue(line);
 				return comp.test(id - value);
 			} catch (NumberFormatException e) {
-				BotManager.logMessage("Filter Error", "Failed to parse ID: " + line + "\nStat: " + stat.getName());
+				DiscordManager.logMessage("Filter Error", "Failed to parse ID: " + line + "\nStat: " + stat.getName());
 			}
 		}
 		return true;

@@ -9,7 +9,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerClose
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerConfirmTransactionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
 
-import dev.p0ke.wynnmarket.minecraft.ClientManager;
+import dev.p0ke.wynnmarket.minecraft.MinecraftManager;
 import dev.p0ke.wynnmarket.minecraft.event.Listener;
 import dev.p0ke.wynnmarket.minecraft.event.PacketHandler;
 import dev.p0ke.wynnmarket.minecraft.util.StringUtil;
@@ -37,7 +37,7 @@ public class WindowHandler extends Listener {
 
 	@PacketHandler
 	public void onConfirm(ServerConfirmTransactionPacket confirmPacket) {
-		ClientManager.getClient().getSession().send(new ClientConfirmTransactionPacket(confirmPacket.getWindowId(), confirmPacket.getActionId(), true));
+		MinecraftManager.getClient().getSession().send(new ClientConfirmTransactionPacket(confirmPacket.getWindowId(), confirmPacket.getActionId(), true));
 	}
 
 	public static String getWindowName(int id) {

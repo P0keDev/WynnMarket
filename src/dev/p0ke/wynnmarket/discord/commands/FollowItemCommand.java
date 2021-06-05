@@ -24,7 +24,7 @@ public class FollowItemCommand implements Command {
 		}
 
 		if (args.length <= 1) {
-			event.getChannel().sendMessage("Must specify an item!");
+			event.getMessage().reply("Must specify an item!");
 			return;
 		}
 
@@ -35,9 +35,9 @@ public class FollowItemCommand implements Command {
 		item = item.trim();
 
 		if (ChannelManager.addItem(event.getChannel().getIdAsString(), event.getMessageAuthor().getIdAsString(), item))
-			event.getChannel().sendMessage("You are now following: " + WordUtils.capitalize(item));
+			event.getMessage().reply("You are now following: " + WordUtils.capitalize(item));
 		else
-			event.getChannel().sendMessage("You are already following that item!");
+			event.getMessage().reply("You are already following that item!");
 	}
 
 

@@ -4,8 +4,8 @@ import java.io.FileInputStream;
 import java.util.Properties;
 
 import dev.p0ke.wynnmarket.data.managers.MarketLogManager;
-import dev.p0ke.wynnmarket.discord.BotManager;
-import dev.p0ke.wynnmarket.minecraft.ClientManager;
+import dev.p0ke.wynnmarket.discord.DiscordManager;
+import dev.p0ke.wynnmarket.minecraft.MinecraftManager;
 
 public class WynnMarket {
 
@@ -19,9 +19,9 @@ public class WynnMarket {
 				return;
 			}
 
-			BotManager.start(login.getProperty("discordtoken"));
+			DiscordManager.start(login.getProperty("discordtoken"));
 			MarketLogManager.start();
-			ClientManager.startClient(login.getProperty("mcuser"), login.getProperty("mcpass"), login.getProperty("npc"));
+			MinecraftManager.startClient(login.getProperty("mcuser"), login.getProperty("mcpass"), login.getProperty("npc"));
 		} catch (Exception e) {
 			System.out.println("Failed to load login credentials:");
 			e.printStackTrace();

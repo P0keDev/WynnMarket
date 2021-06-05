@@ -24,7 +24,7 @@ public class UnfollowItemCommand implements Command {
 		}
 
 		if (args.length <= 1) {
-			event.getChannel().sendMessage("Must specify an item!");
+			event.getMessage().reply("Must specify an item!");
 			return;
 		}
 
@@ -35,9 +35,9 @@ public class UnfollowItemCommand implements Command {
 		item = item.trim();
 
 		if (ChannelManager.removeItem(event.getChannel().getIdAsString(), event.getMessageAuthor().getIdAsString(), item))
-			event.getChannel().sendMessage("You unfollowed: " + WordUtils.capitalize(item));
+			event.getMessage().reply("You unfollowed: " + WordUtils.capitalize(item));
 		else
-			event.getChannel().sendMessage("You are not following that item!");
+			event.getMessage().reply("You are not following that item!");
 	}
 
 }
