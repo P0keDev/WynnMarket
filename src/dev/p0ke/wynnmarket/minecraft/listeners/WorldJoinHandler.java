@@ -61,7 +61,7 @@ public class WorldJoinHandler extends Listener {
 			int players = getPlayerCount(itemLore);
 			int worldNumber = Integer.parseInt(m.group(1));
 
-			if (lastWorld != worldNumber && !attemptedWorlds.contains(worldNumber) && players > -1 && players < 50) {
+			if (lastWorld != worldNumber && !attemptedWorlds.contains(worldNumber) && players > -1 && players < 40) {
 				System.out.println("Attempting to join world " + worldNumber);
 				DiscordManager.logMessage("World Join", "Attempting to join world " + worldNumber);
 

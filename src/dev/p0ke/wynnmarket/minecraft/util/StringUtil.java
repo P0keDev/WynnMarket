@@ -27,20 +27,24 @@ public class StringUtil {
 
 			JsonObject lineJson = line.getAsJsonObject();
 			if (lineJson.has("text")) text += lineJson.get("text").getAsString();
-			if (lineJson.has("extra")) {
-				JsonArray extra = lineJson.get("extra").getAsJsonArray();
-				for (int j = 0; j < extra.size(); j++) {
-					JsonElement extraEntry = extra.get(j);
-					if (!extraEntry.isJsonObject()) {
-						text += extraEntry.getAsString();
-						continue;
-					}
-
-					JsonObject entryJson = extra.get(j).getAsJsonObject();
-					if (entryJson.has("text")) text += entryJson.get("text").getAsString();
-				}
-			}
+			if (lineJson.has("extra")) text += readExtraTag(lineJson.get("extra").getAsJsonArray());
 		} catch (Exception e) { e.printStackTrace(); }
+
+		return text;
+	}
+
+	public static String readExtraTag(JsonArray extraArray) throws IllegalStateException, ClassCastException {
+		String text = "";
+		for (JsonElement entry : extraArray) {
+			if (!entry.isJsonObject()) {
+				text += entry.getAsString();
+				continue;
+			}
+
+			JsonObject entryObject = entry.getAsJsonObject();
+			if (entryObject.has("text")) text += entryObject.get("text").getAsString();
+			if (entryObject.has("extra")) text += readExtraTag(entryObject.get("extra").getAsJsonArray());
+		}
 
 		return text;
 	}
