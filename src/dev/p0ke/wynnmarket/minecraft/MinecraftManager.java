@@ -63,7 +63,7 @@ public class MinecraftManager {
 			return;
 		}
 
-		client = new Client("play.wynncraft.com", 25565, protocol, new TcpSessionFactory());
+		client = new Client("lobby.wynncraft.com", 25565, protocol, new TcpSessionFactory());
 		eventBus = new EventBus(client);
 
 		connectClient();
