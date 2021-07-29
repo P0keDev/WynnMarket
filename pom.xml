@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>WynnMarket</groupId>
 	<artifactId>WynnMarket</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0</version>
 
 	<repositories>
 		<repository>
@@ -19,7 +19,6 @@
 	</repositories>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>com.github.Bedo9041</groupId>
 			<artifactId>jWynn</artifactId>
@@ -59,6 +58,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>WynnMarket</finalName>
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>
 			<plugin>
@@ -67,6 +67,21 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>dev.p0ke.wynnmarket.WynnMarket</mainClass>
+						</manifest>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 			</plugin>
 		</plugins>
