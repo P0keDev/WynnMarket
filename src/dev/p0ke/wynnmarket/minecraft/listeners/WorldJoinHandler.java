@@ -80,7 +80,7 @@ public class WorldJoinHandler extends Listener {
 		String message = StringUtil.parseText(chatPacket.getMessage().toString());
 		message = StringUtil.removeFormatting(message);
 
-		if (message.startsWith("Loading Resource Pack")) {
+		if (message.startsWith("Your class has automatically been selected")) {
 			scheduler.shutdown();
 			attempts = 0;
 			DiscordManager.setStatus("WC" + lastWorld);
