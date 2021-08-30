@@ -103,10 +103,10 @@ public class SearchCommand implements Command {
 
 			switch (event.getEmoji().asUnicodeEmoji().orElse("")) {
 				case LEFT_ARROW:
-					index = (index-1) % results.size();
+					index = Math.floorMod(index-1, results.size());
 					break;
 				case RIGHT_ARROW:
-					index = (index+1) % results.size();
+					index = Math.floorMod(index+1, results.size());
 					break;
 				case RED_X:
 					message.removeAllReactions();

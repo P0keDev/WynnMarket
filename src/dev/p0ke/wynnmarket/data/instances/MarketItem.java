@@ -84,7 +84,8 @@ public class MarketItem {
 
 	public static MarketItem fromItemStack(ItemStack item) {
 		// clean garbage wynn text and grab lore
-		String name = StringUtil.removeFormatting(ItemParser.getName(item)).replace("ÀÀÀ", " ").replace("À", "");
+		String rawName = ItemParser.getName(item).replace("ÀÀÀ", " ").replace("À", "");
+		String name = StringUtil.removeFormatting(rawName);
 		List<String> itemLore = ItemParser.getLore(item);
 
 		if (name.isEmpty() || itemLore.isEmpty()) return null;
@@ -109,6 +110,15 @@ public class MarketItem {
 
 			Matcher m1 = TIER_PATTERN.matcher(line);
 			if (m1.matches()) break; // don't include wynn lore
+		}
+
+		// differentiate material tiers
+		if (lore.get(0).equals("Crafting Material")) {
+			String tier = "T1";
+			if (rawName.contains("e✫✫✫")) tier = "T3";
+			else if (rawName.contains("e✫✫")) tier = "T2";
+
+			name = name.replace("[✫✫✫]", tier);
 		}
 
 		return new MarketItem(name, quantity, price, lore);
