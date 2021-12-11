@@ -20,12 +20,3 @@ jobs:
           username: ${{ secrets.USER }}
           password: ${{ secrets.PASS }}
           script: cd ${{ secrets.PATH }} && ./deploy.sh
-          
-      - name: Build status webhook
-        if: always()
-        env:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git clone https://github.com/Encode42/discord-workflows-webhook.git webhook
-          bash webhook/send.sh ${{ job.status }} ${{ secrets.WEBHOOK_URL }}
-        shell: bash
