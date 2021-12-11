@@ -1,33 +1,32 @@
 package dev.p0ke.wynnmarket.minecraft.event;
 
+import com.github.steveice10.packetlib.Session;
+import com.github.steveice10.packetlib.event.session.ConnectedEvent;
+import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
+import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
+import com.github.steveice10.packetlib.event.session.SessionAdapter;
+import com.github.steveice10.packetlib.packet.Packet;
+import dev.p0ke.wynnmarket.minecraft.event.packet.ConnectPacket;
+import dev.p0ke.wynnmarket.minecraft.event.packet.DisconnectPacket;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.github.steveice10.packetlib.Client;
-import com.github.steveice10.packetlib.event.session.ConnectedEvent;
-import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
-import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
-import com.github.steveice10.packetlib.event.session.SessionAdapter;
-import com.github.steveice10.packetlib.packet.Packet;
-
-import dev.p0ke.wynnmarket.minecraft.event.packet.ConnectPacket;
-import dev.p0ke.wynnmarket.minecraft.event.packet.DisconnectPacket;
-
 public class EventBus extends SessionAdapter {
 
-	private Client client;
+	private Session client;
 	private Map<Class<?>, ArrayList<RegisteredHandler>> registeredHandlers;
 	private List<Listener> registeredListeners;
 
-	public EventBus(Client client) {
+	public EventBus(Session client) {
 		this.client = client;
 		registeredHandlers = new HashMap<>();
 		registeredListeners = new ArrayList<>();
 
-		this.client.getSession().addListener(this);
+		this.client.addListener(this);
 	}
 
 	public void registerListener(Listener l) {

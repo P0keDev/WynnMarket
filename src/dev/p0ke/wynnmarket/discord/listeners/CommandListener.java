@@ -23,7 +23,7 @@ public class CommandListener implements MessageCreateListener {
 				String command = args[0];
 				for (Command c : commands) {
 					if (c.getNames().contains(command)) {
-						new Thread(() -> c.execute(event, args)).start();;
+						new Thread(() -> c.execute(event, args)).start();
 						return;
 					}
 				}

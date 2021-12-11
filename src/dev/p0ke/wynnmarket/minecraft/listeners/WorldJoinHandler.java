@@ -1,19 +1,10 @@
 package dev.p0ke.wynnmarket.minecraft.listeners;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.github.steveice10.mc.protocol.data.game.MessageType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
-
 import dev.p0ke.wynnmarket.discord.DiscordManager;
 import dev.p0ke.wynnmarket.minecraft.MinecraftManager;
 import dev.p0ke.wynnmarket.minecraft.event.Listener;
@@ -21,6 +12,14 @@ import dev.p0ke.wynnmarket.minecraft.event.PacketHandler;
 import dev.p0ke.wynnmarket.minecraft.util.ActionIdUtil;
 import dev.p0ke.wynnmarket.minecraft.util.ItemParser;
 import dev.p0ke.wynnmarket.minecraft.util.StringUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class WorldJoinHandler extends Listener {
 
@@ -77,10 +76,11 @@ public class WorldJoinHandler extends Listener {
 	public void onChat(ServerChatPacket chatPacket) {
 		if (chatPacket.getType() == MessageType.NOTIFICATION) return;
 
-		String message = StringUtil.parseText(chatPacket.getMessage().toString());
+		String message = StringUtil.parseChatMessage(chatPacket);
 		message = StringUtil.removeFormatting(message);
 
-		if (message.startsWith("Your class has automatically been selected")) {
+		if (message.startsWith("Your class has automatically been selected") ||
+				message.startsWith("Select a class!")) {
 			scheduler.shutdown();
 			attempts = 0;
 			DiscordManager.setStatus("WC" + lastWorld);

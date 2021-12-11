@@ -2,11 +2,13 @@ package dev.p0ke.wynnmarket.minecraft.util;
 
 import java.util.regex.Pattern;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.kyori.adventure.text.TextComponent;
 
 public class StringUtil {
 
@@ -16,6 +18,20 @@ public class StringUtil {
 
 	public static String parseStringTag(StringTag tag) {
 		return parseText(tag.getValue());
+	}
+
+	public static String parseChatMessage(ServerChatPacket packet) {
+		if (!(packet.getMessage() instanceof TextComponent)) return "";
+
+		StringBuilder msg = new StringBuilder();
+		TextComponent component = (TextComponent) packet.getMessage();
+		msg.append(component.content());
+		component.children().forEach(c -> {
+			if (c instanceof TextComponent)
+				msg.append(((TextComponent) c).content());
+		});
+
+		return msg.toString();
 	}
 
 	public static String parseText(String input) {
@@ -28,7 +44,7 @@ public class StringUtil {
 			JsonObject lineJson = line.getAsJsonObject();
 			if (lineJson.has("text")) text += lineJson.get("text").getAsString();
 			if (lineJson.has("extra")) text += readExtraTag(lineJson.get("extra").getAsJsonArray());
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { }
 
 		return text;
 	}

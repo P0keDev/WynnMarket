@@ -1,12 +1,5 @@
 package dev.p0ke.wynnmarket.minecraft.listeners;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import com.github.steveice10.mc.auth.data.GameProfile.Property;
 import com.github.steveice10.mc.protocol.data.game.MessageType;
 import com.github.steveice10.mc.protocol.data.game.PlayerListEntry;
@@ -24,7 +17,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.Serve
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerCloseWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
-
 import dev.p0ke.wynnmarket.data.instances.MarketItem;
 import dev.p0ke.wynnmarket.data.managers.MarketItemManager;
 import dev.p0ke.wynnmarket.discord.DiscordManager;
@@ -34,6 +26,14 @@ import dev.p0ke.wynnmarket.minecraft.event.Listener;
 import dev.p0ke.wynnmarket.minecraft.event.PacketHandler;
 import dev.p0ke.wynnmarket.minecraft.util.ItemParser;
 import dev.p0ke.wynnmarket.minecraft.util.StringUtil;
+
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MarketHandler extends Listener {
 
@@ -65,8 +65,8 @@ public class MarketHandler extends Listener {
 
 	@PacketHandler
 	public void onPlayerPosition(ServerPlayerPositionRotationPacket positionPacket) {
-		MinecraftManager.getClient().getSession().send(new ClientTeleportConfirmPacket(positionPacket.getTeleportId()));
-		MinecraftManager.getClient().getSession().send(new ClientPlayerPositionPacket(true, positionPacket.getX(), positionPacket.getY(), positionPacket.getZ()));
+		MinecraftManager.getClient().send(new ClientTeleportConfirmPacket(positionPacket.getTeleportId()));
+		MinecraftManager.getClient().send(new ClientPlayerPositionPacket(true, positionPacket.getX(), positionPacket.getY(), positionPacket.getZ()));
 	}
 
 	@PacketHandler
@@ -75,7 +75,9 @@ public class MarketHandler extends Listener {
 
 		for (PlayerListEntry entry : listEntryPacket.getEntries()) {
 			Property textures = entry.getProfile().getProperty("textures");
-			if (textures != null && textures.getValue().equals(npcTexture))
+			if (textures == null) continue;
+			String skinData = new String(Base64.getDecoder().decode(textures.getValue()));
+			if (skinData.contains(npcTexture))
 				npcUuids.add(entry.getProfile().getId());
 		}
 	}
@@ -91,7 +93,7 @@ public class MarketHandler extends Listener {
 		if (marketOpen || !npcIds.contains(positionPacket.getEntityId())) return;
 
 		ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket(positionPacket.getEntityId(), InteractAction.INTERACT, Hand.MAIN_HAND, false);
-		MinecraftManager.getClient().getSession().send(interactPacket);
+		MinecraftManager.getClient().send(interactPacket);
 
 		if (!schedulerRunning) {
 			schedulerRunning = true;
@@ -122,18 +124,15 @@ public class MarketHandler extends Listener {
 			// if it isn't but the rarity filter is in slot 0, we either click the name filter (if defined) or execute
 			// if neither are in slot 0, we click the rarity filter if one is defined, or the name filter
 
+			int slot = (searchRarity != null) ? searchRarity.slot : 3; // 3 = name filter slot
 			if (ItemParser.getName(itemsPacket.getItems()[0]).contains("Name Contains")
 					|| ItemParser.getName(itemsPacket.getItems()[1]).contains("Name Contains")) {
-				MinecraftManager.clickWindow(itemsPacket.getWindowId(), 53); // search button
-				return;
+				slot = 53; // search button
+			} else if (searchRarity != null && ItemParser.getName(itemsPacket.getItems()[0]).contains(searchRarity.name)) {
+				slot = (searchName != null) ? 3 : 53; // 3 = name filter, 53 = search button
 			}
 
-			if (searchRarity != null && ItemParser.getName(itemsPacket.getItems()[0]).contains(searchRarity.name)) {
-				MinecraftManager.clickWindow(itemsPacket.getWindowId(), (searchName != null) ? 3 : 53); // 3 = name filter, 53 = search button
-				return;
-			}
-
-			MinecraftManager.clickWindow(itemsPacket.getWindowId(), (searchRarity != null) ? searchRarity.slot : 3); // 3 = name filter slot
+			MinecraftManager.clickWindow(itemsPacket.getWindowId(), slot); // 3 = name filter slot
 			return;
 		}
 
@@ -168,12 +167,11 @@ public class MarketHandler extends Listener {
 	public void onChat(ServerChatPacket chatPacket) {
 		if (chatPacket.getType() == MessageType.NOTIFICATION) return;
 
-		String message = StringUtil.parseText(chatPacket.getMessage().toString());
+		String message = StringUtil.parseChatMessage(chatPacket);
 		message = StringUtil.removeFormatting(message);
 
 		if (message.startsWith("Type the item name") && searchName != null)
 			MinecraftManager.sendMessage(searchName);
-
 	}
 
 	public synchronized List<MarketItem> searchItems(String search, RarityFilter rarity) {

@@ -12,7 +12,7 @@ public class ResourcePackHandler extends Listener {
 
 	@PacketHandler
 	public void onServerResourcePack(ServerResourcePackSendPacket resourcePacket) {
-		MinecraftManager.getClient().getSession().send(new ClientResourcePackStatusPacket(ResourcePackStatus.DECLINED));
+		MinecraftManager.getClient().send(new ClientResourcePackStatusPacket(ResourcePackStatus.DECLINED));
 	}
 
 	public void finish() { }
