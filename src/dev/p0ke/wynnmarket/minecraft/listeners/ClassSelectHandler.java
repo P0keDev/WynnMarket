@@ -1,12 +1,10 @@
 package dev.p0ke.wynnmarket.minecraft.listeners;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
+import dev.p0ke.wynnmarket.discord.DiscordManager;
 import dev.p0ke.wynnmarket.minecraft.MinecraftManager;
 import dev.p0ke.wynnmarket.minecraft.event.Listener;
 import dev.p0ke.wynnmarket.minecraft.event.PacketHandler;
-
-import java.util.Arrays;
 
 public class ClassSelectHandler extends Listener {
 
@@ -22,16 +20,12 @@ public class ClassSelectHandler extends Listener {
         String name = WindowHandler.getWindowName(itemsPacket.getWindowId());
         if (name == null || !name.contains("Select a Class")) return;
 
-        System.out.println("In class select");
-
         // get next class in order
         int index = classIndices[currentIndex];
         int classSlot = index + 4*((index-1)/5); // transform class # to slot id
-        ItemStack item = itemsPacket.getItems()[classSlot];
-        if (item == null) {
-            System.out.println("Item not loaded");
-        }
         MinecraftManager.clickWindow(itemsPacket.getWindowId(), classSlot);
+
+        DiscordManager.infoMessage("Class Selection", "Selecting class: " + index);
 
         // increment index
         currentIndex = (currentIndex+1) % classIndices.length;

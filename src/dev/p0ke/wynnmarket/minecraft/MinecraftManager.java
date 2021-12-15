@@ -27,7 +27,6 @@ import dev.p0ke.wynnmarket.minecraft.util.ActionIdUtil;
 import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -102,6 +101,7 @@ public class MinecraftManager {
 		listeners.add(new ResourcePackHandler());
 		listeners.add(market = new MarketHandler(npcId));
 		listeners.add(new ClassSelectHandler(classIndices));
+		listeners.add(new ChatHandler());
 
 		eventBus.clearListeners();
 		listeners.forEach(l -> eventBus.registerListener(l));

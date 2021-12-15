@@ -62,7 +62,7 @@ public class WorldJoinHandler extends Listener {
 
 			if (lastWorld != worldNumber && !attemptedWorlds.contains(worldNumber) && players > -1 && players < 40) {
 				System.out.println("Attempting to join world " + worldNumber);
-				DiscordManager.logMessage("World Join", "Attempting to join world " + worldNumber);
+				DiscordManager.infoMessage("World Join", "Attempting to join world " + worldNumber);
 
 				MinecraftManager.clickWindow(itemsPacket.getWindowId(), i);
 				attemptedWorlds.add(worldNumber);
@@ -89,7 +89,7 @@ public class WorldJoinHandler extends Listener {
 
 		if (message.startsWith("The server is restarting")) {
 			System.out.println("World restart, rejoining");
-			DiscordManager.logMessage("World Restart", "Rejoining...");
+			DiscordManager.infoMessage("World Restart", "Rejoining...");
 
 			MinecraftManager.rejoinWorld();
 			return;
@@ -107,7 +107,7 @@ public class WorldJoinHandler extends Listener {
 
 		if (attempts >= 5) {
 			System.out.println("Attempt limit reached, reconnecting");
-			DiscordManager.logMessage("Reconnecting", "Failed to join a world, reconnecting to Wynn");
+			DiscordManager.infoMessage("Reconnecting", "Failed to join a world, reconnecting to Wynn");
 			scheduler.shutdown();
 			MinecraftManager.reconnect();
 			return;

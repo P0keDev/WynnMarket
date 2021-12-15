@@ -29,7 +29,7 @@ public class ItemFilter {
 				int id = stat.getValue(line);
 				return comp.test(id - value);
 			} catch (NumberFormatException e) {
-				DiscordManager.logMessage("Filter Error", "Failed to parse ID: " + line + "\nStat: " + stat.getName());
+				DiscordManager.infoMessage("Filter Error", "Failed to parse ID: " + line + "\nStat: " + stat.getName());
 			}
 		}
 		return true;

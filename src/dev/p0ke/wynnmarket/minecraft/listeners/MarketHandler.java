@@ -113,7 +113,7 @@ public class MarketHandler extends Listener {
 			marketOpen = true;
 			lastMarketUpdate = System.currentTimeMillis();
 			marketWindowId = itemsPacket.getWindowId();
-
+			DiscordManager.infoMessage("Market Opened", "Successfully opened market.");
 			MarketItemManager.scanPage(itemsPacket.getItems());
 			return;
 		}
@@ -204,12 +204,12 @@ public class MarketHandler extends Listener {
 
 			if (timeouts >= TIMEOUT_THRESHOLD) {
 				System.out.println("Missing market updates, rejoining a world");
-				DiscordManager.logMessage("Market Timeout", "No market updates within threshold, rejoining world");
+				DiscordManager.infoMessage("Market Timeout", "No market updates within threshold, rejoining world");
 
 				scheduler.shutdown();
 				MinecraftManager.rejoinWorld();
 			} else {
-				DiscordManager.logMessage("Missing Market Update", "Timeout #" + timeouts);
+				DiscordManager.infoMessage("Missing Market Update", "Timeout #" + timeouts);
 			}
 			return;
 		}

@@ -1,19 +1,21 @@
 package dev.p0ke.wynnmarket.discord.instances;
 
+import dev.p0ke.wynnmarket.data.instances.MarketItem;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import dev.p0ke.wynnmarket.data.instances.MarketItem;
 
 public class RegisteredChannel {
 
 	private String id;
-	private boolean log;
+	private boolean log = false;
+	private boolean info = false;
 	private List<FollowedItem> followedItems;
 
-	public RegisteredChannel(String id, boolean log) {
+	public RegisteredChannel(String id, boolean log, boolean info) {
 		this.id = id;
 		this.log = log;
+		this.info = info;
 
 		this.followedItems = new ArrayList<>();
 	}
@@ -25,6 +27,8 @@ public class RegisteredChannel {
 	public boolean isLog() {
 		return log;
 	}
+
+	public boolean isInfo() { return info; }
 
 	public boolean addItem(String id, String name) {
 		FollowedItem fi = new FollowedItem(name, id);

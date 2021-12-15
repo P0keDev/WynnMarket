@@ -1,10 +1,10 @@
 package dev.p0ke.wynnmarket.discord;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
+import dev.p0ke.wynnmarket.data.instances.MarketItem;
+import dev.p0ke.wynnmarket.discord.commands.*;
+import dev.p0ke.wynnmarket.discord.listeners.CommandListener;
+import dev.p0ke.wynnmarket.discord.managers.ChannelManager;
+import dev.p0ke.wynnmarket.discord.util.ItemUtil;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.activity.ActivityType;
@@ -13,17 +13,10 @@ import org.javacord.api.entity.intent.Intent;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.user.User;
 
-import dev.p0ke.wynnmarket.data.instances.MarketItem;
-import dev.p0ke.wynnmarket.discord.commands.FilterCommand;
-import dev.p0ke.wynnmarket.discord.commands.FollowItemCommand;
-import dev.p0ke.wynnmarket.discord.commands.FollowListCommand;
-import dev.p0ke.wynnmarket.discord.commands.RegisterChannelCommand;
-import dev.p0ke.wynnmarket.discord.commands.SearchCommand;
-import dev.p0ke.wynnmarket.discord.commands.UnfollowItemCommand;
-import dev.p0ke.wynnmarket.discord.commands.UnregisterChannelCommand;
-import dev.p0ke.wynnmarket.discord.listeners.CommandListener;
-import dev.p0ke.wynnmarket.discord.managers.ChannelManager;
-import dev.p0ke.wynnmarket.discord.util.ItemUtil;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class DiscordManager {
 
@@ -84,13 +77,13 @@ public class DiscordManager {
 		}
 	}
 
-	public static void logMessage(String title, String content) {
+	public static void infoMessage(String title, String content) {
 		EmbedBuilder embed = new EmbedBuilder()
 				.setTitle(title)
 				.setDescription(content)
 				.setColor(new Color(0, 100, 0));
 
-		for (String id : ChannelManager.getLogChannels()) {
+		for (String id : ChannelManager.getInfoChannels()) {
 			if (!client.getServerTextChannelById(id).isPresent()) continue;
 			ServerTextChannel channel = client.getServerTextChannelById(id).get();
 			channel.sendMessage(embed);

@@ -1,11 +1,10 @@
 package dev.p0ke.wynnmarket.discord.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
+import dev.p0ke.wynnmarket.discord.managers.ChannelManager;
 import org.javacord.api.event.message.MessageCreateEvent;
 
-import dev.p0ke.wynnmarket.discord.managers.ChannelManager;
+import java.util.Arrays;
+import java.util.List;
 
 public class RegisterChannelCommand implements Command {
 
@@ -22,9 +21,12 @@ public class RegisterChannelCommand implements Command {
 		}
 
 		String id = event.getChannel().getIdAsString();
-		boolean logAll = (args.length > 1 && args[1].equalsIgnoreCase("log"));
-		ChannelManager.addChannel(id, logAll);
-		event.getChannel().sendMessage("Registered this channel! " + (logAll ? "Logging all items." : ""));
+		List<String> argList = Arrays.asList(args);
+		boolean logAll = argList.contains("log");
+		boolean info = !logAll && argList.contains("info");
+		ChannelManager.addChannel(id, logAll, info);
+		event.getChannel().sendMessage("Registered this channel! " +
+				(logAll ? "Logging all items." : (info ? "Logging info messages." : "")));
 	}
 
 }
