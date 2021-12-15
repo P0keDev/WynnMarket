@@ -110,10 +110,11 @@ public class MarketHandler extends Listener {
 		lastWindowId = itemsPacket.getWindowId();
 
 		if (name.contains("Trade Market")) {
+			if (!marketOpen) DiscordManager.infoMessage("Market Opened", "Successfully opened market.");
+
 			marketOpen = true;
 			lastMarketUpdate = System.currentTimeMillis();
 			marketWindowId = itemsPacket.getWindowId();
-			DiscordManager.infoMessage("Market Opened", "Successfully opened market.");
 			MarketItemManager.scanPage(itemsPacket.getItems());
 			return;
 		}

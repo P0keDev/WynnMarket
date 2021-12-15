@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 public class ChatHandler extends Listener {
 
-    private static final Pattern PM_PATTERN = Pattern.compile("\\[([\\w ]+) \u27A4 [\\w ]+\\] (.*)");
+    private static final Pattern PM_PATTERN = Pattern.compile("\\[([\\w ]+)[()\\w ]* \u27A4 [\\w ]+] (.*)");
 
     @PacketHandler
     public void onChat(ServerChatPacket chatPacket) {
