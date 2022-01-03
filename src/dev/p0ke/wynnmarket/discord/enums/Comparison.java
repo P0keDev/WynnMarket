@@ -25,10 +25,10 @@ public enum Comparison implements IntPredicate {
     }
 
     public static Comparison fromSymbol(String symbol) {
-    	for (Comparison c : Comparison.values()) {
-    		if (c.symbol.equals(symbol)) return c;
-    	}
-    	return null;
+        for (Comparison c : Comparison.values()) {
+            if (c.symbol.equals(symbol)) return c;
+        }
+        return null;
     }
 
 }

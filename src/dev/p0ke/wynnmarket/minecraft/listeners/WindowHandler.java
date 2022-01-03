@@ -12,33 +12,34 @@ import java.util.Map;
 
 public class WindowHandler extends Listener {
 
-	private static Map<Integer, String> windows = new HashMap<>();
-	private static int currentWindow = -1;
+    private static Map<Integer, String> windows = new HashMap<>();
+    private static int currentWindow = -1;
 
-	@PacketHandler
-	public void onWindowOpen(ServerOpenWindowPacket windowPacket) {
-		windows.put(windowPacket.getWindowId(), StringUtil.parseText(windowPacket.getName()));
-		currentWindow = windowPacket.getWindowId();
-	}
+    @PacketHandler
+    public void onWindowOpen(ServerOpenWindowPacket windowPacket) {
+        windows.put(windowPacket.getWindowId(), StringUtil.parseText(windowPacket.getName()));
+        currentWindow = windowPacket.getWindowId();
+    }
 
-	@PacketHandler
-	public void onServerClose(ServerCloseWindowPacket closePacket) {
-		currentWindow = -1;
-	}
+    @PacketHandler
+    public void onServerClose(ServerCloseWindowPacket closePacket) {
+        currentWindow = -1;
+    }
 
-	@PacketHandler
-	public void onClientClose(ClientCloseWindowPacket closePacket) {
-		currentWindow = -1;
-	}
+    @PacketHandler
+    public void onClientClose(ClientCloseWindowPacket closePacket) {
+        currentWindow = -1;
+    }
 
-	public static String getWindowName(int id) {
-		return windows.get(id);
-	}
+    public static String getWindowName(int id) {
+        return windows.get(id);
+    }
 
-	public static int getCurrentWindow() {
-		return currentWindow;
-	}
+    public static int getCurrentWindow() {
+        return currentWindow;
+    }
 
-	public void finish() { }
+    public void finish() {
+    }
 
 }

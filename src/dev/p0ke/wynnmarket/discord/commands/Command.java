@@ -1,12 +1,13 @@
 package dev.p0ke.wynnmarket.discord.commands;
 
-import java.util.List;
-
 import org.javacord.api.event.message.MessageCreateEvent;
+
+import java.util.List;
 
 public interface Command {
 
-	public List<String> getNames();
-	public void execute(MessageCreateEvent event, String[] args);
+    public List<String> getNames();
+
+    public void execute(MessageCreateEvent event, String[] args);
 
 }

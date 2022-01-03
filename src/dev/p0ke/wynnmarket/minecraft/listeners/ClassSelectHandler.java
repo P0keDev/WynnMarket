@@ -12,7 +12,7 @@ public class ClassSelectHandler extends Listener {
     private static int currentIndex = 0;
 
     public ClassSelectHandler(int[] indices) {
-        classIndices = (indices.length > 0) ? indices : new int[]{ 1 };
+        classIndices = (indices.length > 0) ? indices : new int[]{1};
     }
 
     @PacketHandler
@@ -22,15 +22,16 @@ public class ClassSelectHandler extends Listener {
 
         // get next class in order
         int index = classIndices[currentIndex];
-        int classSlot = index + 4*((index-1)/5); // transform class # to slot id
+        int classSlot = index + 4 * ((index - 1) / 5); // transform class # to slot id
         MinecraftManager.clickWindow(itemsPacket.getWindowId(), classSlot);
 
         DiscordManager.infoMessage("Class Selection", "Selecting class: " + index);
 
         // increment index
-        currentIndex = (currentIndex+1) % classIndices.length;
+        currentIndex = (currentIndex + 1) % classIndices.length;
     }
 
     @Override
-    public void finish() { }
+    public void finish() {
+    }
 }

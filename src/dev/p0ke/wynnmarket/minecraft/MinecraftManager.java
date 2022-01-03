@@ -34,134 +34,134 @@ import java.util.concurrent.TimeUnit;
 
 public class MinecraftManager {
 
-	private static final String CLIENT_ID = "19655257-1b8e-407e-9328-ef0b5faa355a";
+    private static final String CLIENT_ID = "19655257-1b8e-407e-9328-ef0b5faa355a";
 
-	private static Session client;
-	private static String username;
-	private static String password;
-	private static String npcId;
-	private static int[] classIndices;
+    private static Session client;
+    private static String username;
+    private static String password;
+    private static String npcId;
+    private static int[] classIndices;
 
-	private static EventBus eventBus;
-	private static List<Listener> listeners = new ArrayList<>();
+    private static EventBus eventBus;
+    private static List<Listener> listeners = new ArrayList<>();
 
-	private static ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-	private static boolean lobbySuccess = false;
+    private static ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private static boolean lobbySuccess = false;
 
-	private static MarketHandler market;
+    private static MarketHandler market;
 
-	public static void startClient(String user, String pass, String npc, int[] classes) {
-		username = user;
-		password = pass;
-		npcId = npc;
-		classIndices = classes;
+    public static void startClient(String user, String pass, String npc, int[] classes) {
+        username = user;
+        password = pass;
+        npcId = npc;
+        classIndices = classes;
 
-		startClient();
-	}
+        startClient();
+    }
 
-	private static void startClient() {
-		MinecraftProtocol protocol;
-		try {
-			AuthenticationService authService = new MsaAuthenticationService(CLIENT_ID);
-			authService.setUsername(username);
-			authService.setPassword(password);
-			authService.setProxy(Proxy.NO_PROXY);
-			authService.login();
+    private static void startClient() {
+        MinecraftProtocol protocol;
+        try {
+            AuthenticationService authService = new MsaAuthenticationService(CLIENT_ID);
+            authService.setUsername(username);
+            authService.setPassword(password);
+            authService.setProxy(Proxy.NO_PROXY);
+            authService.login();
 
-			protocol = new MinecraftProtocol(authService.getSelectedProfile(), authService.getAccessToken());
-			System.out.println("Successfully authenticated user.");
-		} catch (RequestException e) {
-			e.printStackTrace();
-			return;
-		}
+            protocol = new MinecraftProtocol(authService.getSelectedProfile(), authService.getAccessToken());
+            System.out.println("Successfully authenticated user.");
+        } catch (RequestException e) {
+            e.printStackTrace();
+            return;
+        }
 
-		SessionService sessionService = new SessionService();
-		sessionService.setProxy(Proxy.NO_PROXY);
+        SessionService sessionService = new SessionService();
+        sessionService.setProxy(Proxy.NO_PROXY);
 
-		client = new TcpClientSession("lobby.wynncraft.com", 25565, protocol, null);
-		client.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
+        client = new TcpClientSession("lobby.wynncraft.com", 25565, protocol, null);
+        client.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
 
-		eventBus = new EventBus(client);
+        eventBus = new EventBus(client);
 
-		connectClient();
-	}
+        connectClient();
+    }
 
-	private static void connectClient() {
-		resetListeners();
-		client.connect();
-		startLobbyChecker();
-	}
+    private static void connectClient() {
+        resetListeners();
+        client.connect();
+        startLobbyChecker();
+    }
 
-	public static void resetListeners() {
-		listeners.forEach(Listener::finish);
-		listeners.clear();
+    public static void resetListeners() {
+        listeners.forEach(Listener::finish);
+        listeners.clear();
 
-		listeners.add(new WindowHandler());
-		listeners.add(new WorldJoinHandler());
-		listeners.add(new ResourcePackHandler());
-		listeners.add(market = new MarketHandler(npcId));
-		listeners.add(new ClassSelectHandler(classIndices));
-		listeners.add(new ChatHandler());
+        listeners.add(new WindowHandler());
+        listeners.add(new WorldJoinHandler());
+        listeners.add(new ResourcePackHandler());
+        listeners.add(market = new MarketHandler(npcId));
+        listeners.add(new ClassSelectHandler(classIndices));
+        listeners.add(new ChatHandler());
 
-		eventBus.clearListeners();
-		listeners.forEach(l -> eventBus.registerListener(l));
-	}
+        eventBus.clearListeners();
+        listeners.forEach(l -> eventBus.registerListener(l));
+    }
 
-	public static synchronized List<MarketItem> searchItem(String search, RarityFilter rarity) {
-		if (search != null && search.equalsIgnoreCase("cancel")) return null; // prevent infinite loop
-		return market.searchItems(search, rarity);
-	}
+    public static synchronized List<MarketItem> searchItem(String search, RarityFilter rarity) {
+        if (search != null && search.equalsIgnoreCase("cancel")) return null; // prevent infinite loop
+        return market.searchItems(search, rarity);
+    }
 
-	public static void reconnect() {
-		client.disconnect("Finished");
-		startClient();
+    public static void reconnect() {
+        client.disconnect("Finished");
+        startClient();
 
-		DiscordManager.clearStatus();
-	}
+        DiscordManager.clearStatus();
+    }
 
-	public static void rejoinWorld() {
-		resetListeners();
-		sendMessage("/hub");
-		startLobbyChecker();
+    public static void rejoinWorld() {
+        resetListeners();
+        sendMessage("/hub");
+        startLobbyChecker();
 
-		DiscordManager.clearStatus();
-	}
+        DiscordManager.clearStatus();
+    }
 
-	public static void sendMessage(String message) {
-		client.send(new ClientChatPacket(message));
-	}
+    public static void sendMessage(String message) {
+        client.send(new ClientChatPacket(message));
+    }
 
-	public static void useItem(int hotbarSlot) {
-		client.send(new ClientPlayerChangeHeldItemPacket(hotbarSlot));
-		client.send(new ClientPlayerUseItemPacket(Hand.MAIN_HAND));
-	}
+    public static void useItem(int hotbarSlot) {
+        client.send(new ClientPlayerChangeHeldItemPacket(hotbarSlot));
+        client.send(new ClientPlayerUseItemPacket(Hand.MAIN_HAND));
+    }
 
-	public static void clickWindow(int windowId, int slot) {
-		int action = ActionIdUtil.getNewID(windowId);
-		client.send(new ClientWindowActionPacket(windowId, action, slot, WindowAction.CLICK_ITEM,
-				ClickItemParam.LEFT_CLICK, null, Collections.singletonMap(slot, null)));
-	}
+    public static void clickWindow(int windowId, int slot) {
+        int action = ActionIdUtil.getNewID(windowId);
+        client.send(new ClientWindowActionPacket(windowId, action, slot, WindowAction.CLICK_ITEM,
+                ClickItemParam.LEFT_CLICK, null, Collections.singletonMap(slot, null)));
+    }
 
-	public static void closeWindow(int windowId) {
-		client.send(new ClientCloseWindowPacket(windowId));
-	}
+    public static void closeWindow(int windowId) {
+        client.send(new ClientCloseWindowPacket(windowId));
+    }
 
-	public static void startLobbyChecker() {
-		lobbySuccess = false;
-		scheduler.schedule(MinecraftManager::checkLobbySuccess, 30, TimeUnit.SECONDS);
-	}
+    public static void startLobbyChecker() {
+        lobbySuccess = false;
+        scheduler.schedule(MinecraftManager::checkLobbySuccess, 30, TimeUnit.SECONDS);
+    }
 
-	public static void reportLobbySuccess() {
-		lobbySuccess = true;
-	}
+    public static void reportLobbySuccess() {
+        lobbySuccess = true;
+    }
 
-	public static void checkLobbySuccess() {
-		if (lobbySuccess) return;
-		reconnect();
-	}
+    public static void checkLobbySuccess() {
+        if (lobbySuccess) return;
+        reconnect();
+    }
 
-	public static Session getClient() {
-		return client;
-	}
+    public static Session getClient() {
+        return client;
+    }
 
 }

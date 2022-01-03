@@ -30,5 +30,6 @@ public class ChatHandler extends Listener {
     }
 
     @Override
-    public void finish() { }
+    public void finish() {
+    }
 }
