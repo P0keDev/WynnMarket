@@ -111,7 +111,7 @@ public class MarketItem {
         }
 
         // differentiate material tiers
-        if (lore.get(0).equals("Crafting Material")) {
+        if (!lore.isEmpty() && lore.get(0).equals("Crafting Material")) {
             String tier = "T1";
             if (rawName.contains("e✫✫✫")) tier = "T3";
             else if (rawName.contains("e✫✫")) tier = "T2";
