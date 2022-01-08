@@ -87,7 +87,7 @@ public class WorldJoinHandler extends Listener {
             return;
         }
 
-        if (message.startsWith("The server is restarting")) {
+        if (message.startsWith("This world will restart")) {
             System.out.println("World restart, rejoining");
             DiscordManager.infoMessage("World Restart", "Rejoining...");
 
