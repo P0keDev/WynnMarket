@@ -80,7 +80,7 @@ public class WorldJoinHandler extends Listener {
         message = StringUtil.removeFormatting(message);
 
         if (message.startsWith("Your class has automatically been selected") ||
-                message.startsWith("Select a class!")) {
+                message.startsWith("Select a character!")) {
             scheduler.shutdown();
             attempts = 0;
             DiscordManager.setStatus("WC" + lastWorld);

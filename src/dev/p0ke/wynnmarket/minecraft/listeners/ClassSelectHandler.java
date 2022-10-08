@@ -8,8 +8,10 @@ import dev.p0ke.wynnmarket.minecraft.event.PacketHandler;
 
 public class ClassSelectHandler extends Listener {
 
-    private int[] classIndices;
+    private final int[] classIndices;
     private static int currentIndex = 0;
+
+    private boolean selected = false;
 
     public ClassSelectHandler(int[] indices) {
         classIndices = (indices.length > 0) ? indices : new int[]{1};
@@ -17,8 +19,10 @@ public class ClassSelectHandler extends Listener {
 
     @PacketHandler
     public void onWindowItems(ServerWindowItemsPacket itemsPacket) {
+        if (selected) return;
+
         String name = WindowHandler.getWindowName(itemsPacket.getWindowId());
-        if (name == null || !name.contains("Select a Class")) return;
+        if (name == null || !name.contains("Select a Character")) return;
 
         // get next class in order
         int index = classIndices[currentIndex];
@@ -29,6 +33,9 @@ public class ClassSelectHandler extends Listener {
 
         // increment index
         currentIndex = (currentIndex + 1) % classIndices.length;
+
+        // class selected flag
+        selected = true;
     }
 
     @Override
