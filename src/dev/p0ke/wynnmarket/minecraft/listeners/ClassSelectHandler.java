@@ -8,13 +8,12 @@ import dev.p0ke.wynnmarket.minecraft.event.PacketHandler;
 
 public class ClassSelectHandler extends Listener {
 
-    private final int[] classIndices;
-    private static int currentIndex = 0;
+    private final int classIndex;
 
     private boolean selected = false;
 
-    public ClassSelectHandler(int[] indices) {
-        classIndices = (indices.length > 0) ? indices : new int[]{1};
+    public ClassSelectHandler(int index) {
+        classIndex = index;
     }
 
     @PacketHandler
@@ -24,15 +23,10 @@ public class ClassSelectHandler extends Listener {
         String name = WindowHandler.getWindowName(itemsPacket.getWindowId());
         if (name == null || !name.contains("Select a Character")) return;
 
-        // get next class in order
-        int index = classIndices[currentIndex];
-        int classSlot = index + 4 * ((index - 1) / 5); // transform class # to slot id
+        int classSlot = classIndex + 4 * ((classIndex - 1) / 5); // transform class # to slot id
         MinecraftManager.clickWindow(itemsPacket.getWindowId(), classSlot);
 
-        DiscordManager.infoMessage("Class Selection", "Selecting class: " + index);
-
-        // increment index
-        currentIndex = (currentIndex + 1) % classIndices.length;
+        DiscordManager.infoMessage("Class Selection", "Selecting class: " + classIndex);
 
         // class selected flag
         selected = true;

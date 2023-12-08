@@ -1,11 +1,5 @@
 package dev.p0ke.wynnmarket.minecraft;
 
-import com.github.steveice10.mc.auth.exception.request.RequestException;
-import com.github.steveice10.mc.auth.service.AuthenticationService;
-import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
-import com.github.steveice10.mc.auth.service.SessionService;
-import com.github.steveice10.mc.protocol.MinecraftConstants;
-import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.window.ClickItemParam;
 import com.github.steveice10.mc.protocol.data.game.window.WindowAction;
@@ -15,16 +9,15 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientWindowActionPacket;
 import com.github.steveice10.packetlib.Session;
-import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import dev.p0ke.wynnmarket.data.instances.MarketItem;
 import dev.p0ke.wynnmarket.discord.DiscordManager;
+import dev.p0ke.wynnmarket.minecraft.auth.MinecraftAccount;
 import dev.p0ke.wynnmarket.minecraft.enums.RarityFilter;
 import dev.p0ke.wynnmarket.minecraft.event.EventBus;
 import dev.p0ke.wynnmarket.minecraft.event.Listener;
 import dev.p0ke.wynnmarket.minecraft.listeners.*;
 import dev.p0ke.wynnmarket.minecraft.util.ActionIdUtil;
 
-import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,63 +26,48 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class MinecraftManager {
+    private static final long ACCOUNT_INTERVAL = 1000 * 60 * 60 * 6; // 6 hours
 
     private static final String CLIENT_ID = "19655257-1b8e-407e-9328-ef0b5faa355a";
 
-    private static Session client;
-    private static String username;
-    private static String password;
     private static String npcId;
-    private static int[] classIndices;
+    private static List<MinecraftAccount> accounts;
+    private static int accountIndex = -1;
+    private static MinecraftAccount account;
 
-    private static EventBus eventBus;
-    private static List<Listener> listeners = new ArrayList<>();
+    private static final EventBus eventBus = new EventBus();
+    private static final List<Listener> listeners = new ArrayList<>();
 
-    private static ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private static long lastLoginTime;
+    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private static boolean lobbySuccess = false;
 
     private static MarketHandler market;
 
-    public static void startClient(String user, String pass, String npc, int[] classes) {
-        username = user;
-        password = pass;
+    public static void startClient(String users[], String passes[], int[] classes, String npc) {
         npcId = npc;
-        classIndices = classes;
 
-        startClient();
-    }
-
-    private static void startClient() {
-        MinecraftProtocol protocol;
-        try {
-            AuthenticationService authService = new MsaAuthenticationService(CLIENT_ID);
-            authService.setUsername(username);
-            authService.setPassword(password);
-            authService.setProxy(Proxy.NO_PROXY);
-            authService.login();
-
-            protocol = new MinecraftProtocol(authService.getSelectedProfile(), authService.getAccessToken());
-            System.out.println("Successfully authenticated user.");
-        } catch (RequestException e) {
-            e.printStackTrace();
-            return;
+        accounts = new ArrayList<>();
+        for (int i = 0; i < users.length; i++) {
+            accounts.add(new MinecraftAccount(users[i], passes[i], classes[i]));
         }
 
-        SessionService sessionService = new SessionService();
-        sessionService.setProxy(Proxy.NO_PROXY);
-
-        client = new TcpClientSession("lobby.wynncraft.com", 25565, protocol, null);
-        client.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
-
-        eventBus = new EventBus(client);
-
-        connectClient();
+        startNextClient();
     }
 
-    private static void connectClient() {
+    private static void startNextClient() {
+        accountIndex = (accountIndex+1) % accounts.size();
+        account = accounts.get(accountIndex);
+
+        account.login(CLIENT_ID);
+
+        eventBus.registerClient(account.getClient());
         resetListeners();
-        client.connect();
+
+        account.getClient().connect();
         startLobbyChecker();
+
+        lastLoginTime = System.currentTimeMillis();
     }
 
     public static void resetListeners() {
@@ -100,11 +78,11 @@ public class MinecraftManager {
         listeners.add(new WorldJoinHandler());
         listeners.add(new ResourcePackHandler());
         listeners.add(market = new MarketHandler(npcId));
-        listeners.add(new ClassSelectHandler(classIndices));
+        listeners.add(new ClassSelectHandler(account.getClassIndex()));
         listeners.add(new ChatHandler());
 
         eventBus.clearListeners();
-        listeners.forEach(l -> eventBus.registerListener(l));
+        listeners.forEach(eventBus::registerListener);
     }
 
     public static synchronized List<MarketItem> searchItem(String search, RarityFilter rarity) {
@@ -113,13 +91,18 @@ public class MinecraftManager {
     }
 
     public static void reconnect() {
-        client.disconnect("Finished");
-        startClient();
+        account.logout();
+        startNextClient();
 
         DiscordManager.clearStatus();
     }
 
     public static void rejoinWorld() {
+        if (System.currentTimeMillis() - lastLoginTime > ACCOUNT_INTERVAL) {
+            reconnect();
+            return;
+        }
+
         resetListeners();
         sendMessage("/hub");
         startLobbyChecker();
@@ -128,22 +111,22 @@ public class MinecraftManager {
     }
 
     public static void sendMessage(String message) {
-        client.send(new ClientChatPacket(message));
+        account.getClient().send(new ClientChatPacket(message));
     }
 
     public static void useItem(int hotbarSlot) {
-        client.send(new ClientPlayerChangeHeldItemPacket(hotbarSlot));
-        client.send(new ClientPlayerUseItemPacket(Hand.MAIN_HAND));
+        account.getClient().send(new ClientPlayerChangeHeldItemPacket(hotbarSlot));
+        account.getClient().send(new ClientPlayerUseItemPacket(Hand.MAIN_HAND));
     }
 
     public static void clickWindow(int windowId, int slot) {
         int action = ActionIdUtil.getNewID(windowId);
-        client.send(new ClientWindowActionPacket(windowId, action, slot, WindowAction.CLICK_ITEM,
+        account.getClient().send(new ClientWindowActionPacket(windowId, action, slot, WindowAction.CLICK_ITEM,
                 ClickItemParam.LEFT_CLICK, null, Collections.singletonMap(slot, null)));
     }
 
     public static void closeWindow(int windowId) {
-        client.send(new ClientCloseWindowPacket(windowId));
+        account.getClient().send(new ClientCloseWindowPacket(windowId));
     }
 
     public static void startLobbyChecker() {
@@ -161,7 +144,7 @@ public class MinecraftManager {
     }
 
     public static Session getClient() {
-        return client;
+        return account.getClient();
     }
 
 }

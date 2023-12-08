@@ -18,14 +18,24 @@ import java.util.Map;
 public class EventBus extends SessionAdapter {
 
     private Session client;
-    private Map<Class<?>, ArrayList<RegisteredHandler>> registeredHandlers;
-    private List<Listener> registeredListeners;
+    private final Map<Class<?>, ArrayList<RegisteredHandler>> registeredHandlers;
+    private final List<Listener> registeredListeners;
 
-    public EventBus(Session client) {
-        this.client = client;
+    public EventBus() {
         registeredHandlers = new HashMap<>();
         registeredListeners = new ArrayList<>();
+    }
 
+
+    public EventBus(Session client) {
+        this();
+        registerClient(client);
+    }
+
+    public void registerClient(Session client) {
+        if (this.client != null) this.client.removeListener(this);
+
+        this.client = client;
         this.client.addListener(this);
     }
 
